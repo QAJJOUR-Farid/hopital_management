@@ -44,7 +44,7 @@ class MagasiniersController extends Controller
                 'etat' => 'inactif',
             ]);
 
-            // Create Receptionnistes linked to this user via CIN
+            // Create magasinier linked to this user via CIN
             Magasiniers::create([
                 'CIN' => $data['CIN']
             ]);

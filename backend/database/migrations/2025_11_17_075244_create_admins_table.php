@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('admins', function (Blueprint $table) {
             $table->id();
-            $table->string('CIN',20)->unique();
+            $table->string('CIN',20);
             $table->foreign('CIN')->references('CIN')->on('users')->onDelete('cascade');
             $table->timestamps();
         });

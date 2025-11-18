@@ -24,7 +24,12 @@ class User extends Authenticatable
         'email',
         'password',
         'adresse',
+<<<<<<< HEAD
         'num_tel'
+=======
+        'num_tel',
+        
+>>>>>>> ac20e46a2ac2ca0986e5456816063e6b085a1000
     ];
 
     protected $hidden = [
@@ -34,10 +39,15 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        
     ];
 
     // Relationships
+    public function admin()
+    {
+        return $this->hasOne(Admin::class, 'CIN', 'CIN');
+    }
+
     public function patient()
     {
         return $this->hasOne(Patient::class, 'CIN', 'CIN');
@@ -45,7 +55,7 @@ class User extends Authenticatable
 
     public function receptionniste()
     {
-        return $this->hasOne(Receptionnistes::class, 'CIN', 'CIN');
+        return $this->hasOne(Receptionniste::class, 'CIN', 'CIN');
     }
 
     public function medecins(){
@@ -61,6 +71,7 @@ class User extends Authenticatable
     public function infirmiers(){
         return $this->hasOne(Infirmiers::class,'CIN','CIN');
     }
+
 
 
 }

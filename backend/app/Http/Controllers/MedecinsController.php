@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\medecins;
-use App\Models\Medecins as ModelsMedecins;
+use App\Models\Medecins;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
