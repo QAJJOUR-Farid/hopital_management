@@ -96,6 +96,9 @@ class AdminController extends Controller
      */
     public function update(Request $request, Admin $admin)
     {
+        $appointment = Admin::findOrFail($admin->id());
+        $appointment->update($request->all());
+        return response()->json($appointment);
         //
     }
 

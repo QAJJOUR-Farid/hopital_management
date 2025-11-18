@@ -24,7 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'adresse',
-        'num_tel',
+        'num_tel'
     ];
 
     protected $hidden = [
@@ -46,6 +46,20 @@ class User extends Authenticatable
     public function receptionniste()
     {
         return $this->hasOne(Receptionnistes::class, 'CIN', 'CIN');
+    }
+
+    public function medecins(){
+        return $this->hasOne(Medecins::class,'CIN','CIN');
+    }
+
+    public function magasiniers(){
+        return $this->hasOne(Magasiniers::class,'CIN','CIN');
+    }
+    public function admin(){
+        return $this->hasOne(Admin::class,'CIN','CIN');
+    }
+    public function infirmiers(){
+        return $this->hasOne(Infirmiers::class,'CIN','CIN');
     }
 
 

@@ -69,7 +69,7 @@ class InfirmiersController extends Controller
         });
 
         return response()->json([
-            'message' => 'infermier created successfully']);
+            'message' => 'infirmier created successfully']);
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
