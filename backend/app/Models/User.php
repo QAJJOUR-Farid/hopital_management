@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'adresse',
         'num_tel',
+        
     ];
 
     protected $hidden = [
@@ -34,10 +35,15 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        
     ];
 
     // Relationships
+    public function admin()
+    {
+        return $this->hasOne(Admin::class, 'CIN', 'CIN');
+    }
+
     public function patient()
     {
         return $this->hasOne(Patient::class, 'CIN', 'CIN');
@@ -45,8 +51,9 @@ class User extends Authenticatable
 
     public function receptionniste()
     {
-        return $this->hasOne(Receptionnistes::class, 'CIN', 'CIN');
+        return $this->hasOne(Receptionniste::class, 'CIN', 'CIN');
     }
+
 
 
 }

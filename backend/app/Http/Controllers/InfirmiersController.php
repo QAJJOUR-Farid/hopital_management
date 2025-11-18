@@ -61,7 +61,7 @@ class InfirmiersController extends Controller
                 'etat' => 'inactif',
             ]);
 
-            // Create Receptionnistes linked to this user via CIN
+            // Create infirmiers linked to this user via CIN
             Infirmiers::create([
                 'CIN' => $data['CIN'],
                 'service' => $data['service']
