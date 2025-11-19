@@ -17,4 +17,8 @@ class Magasiniers extends Model
     {
         return $this->belongsTo(User::class, 'CIN', 'CIN');
     }
+    public function produit()
+    {
+        return $this->hasMany(Produit::class, 'id_magasinier', 'id_magasinier');
+    }
 }
