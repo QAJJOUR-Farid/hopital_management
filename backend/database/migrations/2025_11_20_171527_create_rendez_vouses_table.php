@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('rendez_vous', function (Blueprint $table) {
             $table->id('idR');
-            $table->unsignedBigInteger('id_medecin');
+            $table->unsignedBigInteger('id_medecin')->nullable();
             $table->unsignedBigInteger('id_patient');
-            $table->unsignedBigInteger('id_rec');
+            $table->unsignedBigInteger('id_rec')->nullable();
             $table->dateTime('date_rv');
             $table->dateTime('dateDePrisedeRV');
             $table->string('statut')->default('prévu');

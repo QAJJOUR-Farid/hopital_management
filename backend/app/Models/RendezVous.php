@@ -10,9 +10,9 @@ class RendezVous extends Model
     protected $table = 'rendez_vous';//on forcer le nom  de tableau
     // public $timestamps= false; 
     protected $fillable =[
-        'id_patient',
-        'id_medecin',
-        'id_rec',
+        // 'id_patient',
+        // 'id_medecin',
+        // 'id_rec',
         'date_rv',
         'dateDePrisedeRV',
         'statut', //  statut de rendzvous en_attente ,confirme ,annule et termine

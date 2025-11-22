@@ -109,6 +109,12 @@ class RendezVousController extends Controller
      */
     public function destroy(RendezVous $rendezVous)
     {
-        //
+         try {
+            $rendezVous->delete();
+            return response()->json(['message' => 'rendezVous supprimé avec succès'], 200);
+
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

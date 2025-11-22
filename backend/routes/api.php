@@ -11,13 +11,10 @@ use App\Http\Controllers\ReceptionnistesController;
 use App\Http\Controllers\RendezVousController;
 use Illuminate\Support\Facades\Route;
 
-<<<<<<< HEAD
-=======
 // chnager l'etat d'utilisateur (fonction de l'admin)
 Route::patch( '/admin/{CIN}/state', [AdminController::class, 'changeState']);
 
 
->>>>>>> e56ee56b7ce654f79ac752d6094b32ce1ec89234
 
 // store for users
 Route::post('/patients', [PatientController::class, 'store']);
@@ -26,7 +23,11 @@ Route::post('/medecins',[MedecinsController::class,'store']);
 Route::post('/magasiniers',[MagasiniersController::class,'store']);
 Route::post('/admin',[AdminController::class,'store']);
 Route::post('/infirmiers',[InfirmiersController::class,'store']);
+
+
+//geree Rendez-Vous
 Route::post('/rendezVous',[RendezVousController::class,'store']);
+Route::delete('/rendezVous/{rendezVous}',[RendezVousController::class, 'destroy'])->where('produit', '[0-9]+');
 
 
 // store for products
@@ -47,9 +48,6 @@ ROute::put('/infirmiers/{infirmier}',[InfirmiersController::class ,'update']);
 Route::put('/medecins/{medecin}',[MedecinsController::class , 'update']);
 Route::put('/magasiniers/{magasinier}',[MagasiniersController::class , 'update']);
 Route::put('/admin/{admin}', [AdminController::class, 'update']);
-<<<<<<< HEAD
-Route::put('/rendezVous/{rendezVous}', [RendezVousController::class, 'update']);
-=======
 
 
 Route::post('/diagnostics', [DiagnosticController::class, 'store']);
@@ -58,4 +56,3 @@ Route::get('/diagnostics/{diadnostic}/show',[DiagnosticController::class,'show']
 Route::get('/diagnostics/index', [DiagnosticController::class, 'index']);
 Route::get('/diagnostics/{id}/patient', [DiagnosticController::class, 'getDiagnosticByPatientId']);
 Route::put('/diagnostics/{diagnostic}/update', [DiagnosticController::class, 'update']);
->>>>>>> e56ee56b7ce654f79ac752d6094b32ce1ec89234
