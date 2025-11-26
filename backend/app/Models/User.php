@@ -60,6 +60,9 @@ class User extends Authenticatable
     public function infirmiers(){
         return $this->hasOne(Infirmiers::class,'CIN','CIN');
     }
+    public function admin(){
+        return $this->hasOne(Admin::class,'CIN','CIN');
+    }
 
     /*
        ! modifer infos all users
