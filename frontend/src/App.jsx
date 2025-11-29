@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -17,35 +16,19 @@ import Patients from "./pages/Patients";
 import RendezVous from "./pages/RendezVous";
 import RendezVousInfirmier from "./pages/RendezVousInfirmier";
 import Produits from "./pages/Produits";
-import Diagnostics from "./pages/Diagnostics";
+import Diagnostics from "./pages/diagnostics/Diagnostics";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles/custom.scss";
-=======
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import AuthProvider from './providers/AuthProvider';
-import { useAuth } from './hooks/useAuth';
-import Header from './components/common/Header';
-import Sidebar from './components/common/Sidebar';
-import Footer from './components/common/Footer';
-import Dashboard from './pages/Dashboard';
-import Users from './pages/Users';
-import RendezVous from './pages/RendezVous';
-import Produits from './pages/Produits';
-import Diagnostics from './pages/diagnostics/Diagnostics';
 import DiagnosticsInfermier from './pages/diagnostics/DiagnosticsInfermier';
 import Signale from './pages/Signales/Signale';
 import SignaleMagasinier from './pages/Signales/SignaleMagasinier';
 import VoirMedecins from './pages/VoirMedecins';
 import ModifierInfos from './pages/ModifierInfos';
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/custom.scss';
 
->>>>>>> 47c75a4ddb950c6409aa7351181805d0d34e571b
 
 // Composant de chargement
 const LoadingSpinner = () => (
@@ -95,9 +78,7 @@ const MainLayout = () => {
             {/* Tableau de bord selon le rôle */}
 
             <Route path="/" element={<Dashboard />} />
-<<<<<<< HEAD
 
-=======
             
             {/*Route Signale  */}
             <Route path="/signale" element={
@@ -112,7 +93,6 @@ const MainLayout = () => {
                 <SignaleMagasinier />
               </ProtectedRoute>
             }/>
->>>>>>> 47c75a4ddb950c6409aa7351181805d0d34e571b
             {/* Routes Admin */}
             <Route
               path="/users"
@@ -125,7 +105,6 @@ const MainLayout = () => {
             <Route path="/patients" element={<Patients />} />
 
             {/* Routes communes */}
-<<<<<<< HEAD
             <Route
               path="/rendezvous"
               element={
@@ -151,31 +130,6 @@ const MainLayout = () => {
               }
             />
 
-            <Route
-              path="/produits"
-              element={
-                <ProtectedRoute allowedRoles={["admin", "magasinier"]}>
-                  <Produits />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/diagnostics"
-              element={
-                <ProtectedRoute
-                  allowedRoles={["admin", "medecin", "infirmier"]}
-                >
-                  <Diagnostics />
-                </ProtectedRoute>
-              }
-            />
-=======
-            <Route path="/rendezvous" element={
-              <ProtectedRoute allowedRoles={['admin', 'receptionniste', 'medecin', 'patient']}>
-                <RendezVous />
-              </ProtectedRoute>
-            } />
             <Route path="/voirMedecins" element={
               <ProtectedRoute allowedRoles={['patient']}>
                 <VoirMedecins />
@@ -206,7 +160,6 @@ const MainLayout = () => {
                 <DiagnosticsInfermier />
               </ProtectedRoute>
             } />
->>>>>>> 47c75a4ddb950c6409aa7351181805d0d34e571b
           </Routes>
         </div>
       </div>

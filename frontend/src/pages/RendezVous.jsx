@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Table, Button, Alert, Spinner, Badge, Modal, Form, Row, Col, Card } from 'react-bootstrap';
-import { rendezVousAPI } from '../services/api';
+import { rendezVousAPI } from '../Services/api';
 
 const RendezVous = () => {
   const [rendezVous, setRendezVous] = useState([]);
@@ -260,9 +260,9 @@ const RendezVous = () => {
   };
 
   // Filtrer les rendez-vous pour n'afficher que ceux du patient connecté
-  const patientRendezVous = currentUser 
-    ? rendezVous.filter(rdv => rdv.id_patient === currentUser.id_patient)
-    : [];
+  // const patientRendezVous = currentUser 
+  //   ? rendezVous.filter(rdv => rdv.id_patient === currentUser.id_patient)
+  //   : [];
 
   if (loading && rendezVous.length === 0) {
     return (

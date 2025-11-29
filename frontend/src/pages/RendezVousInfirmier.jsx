@@ -78,7 +78,7 @@ const RendezVousInfirmier = () => {
         minute: '2-digit'
       });
     } catch (error) {
-      return 'Date invalide';
+      return 'Date invalide '+ error;
     }
   };
 

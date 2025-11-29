@@ -45,8 +45,19 @@ export const userAPI = {
   updateUser: (CIN, userData) => api.put(`/users/${CIN}`, userData),
   deleteUser: (CIN) => api.delete(`/users/${CIN}`), 
   changeUserState: (CIN) => api.patch(`/users/${CIN}/state`),
-<<<<<<< HEAD
   toggleUserState: (CIN) => api.patch(`/users/${CIN}/state`),
+  getUserByCIN: (CIN) => api.get(`/users/${CIN}`),
+  getAllMedecins: () => api.get('/medecins'),
+  getMedecinById: (id) => api.get(`/medecin/${id}`),
+  getPatientById: (id) => api.get(`/patient/${id}`),
+  getAllMagasiniers: () => api.get('/magasiniers'),
+  getAllInfirmiers : () => api.get('/infirmiers'),
+  updatePatient: (id, data) => api.put(`/patients/${id}`, data),
+  updateMedecin: (id, data) => api.put(`/medecins/${id}`, data),
+  updateInfirmier: (id, data) => api.put(`/infirmiers/${id}`, data),
+  updateMagasinier: (id, data) => api.put(`/magasiniers/${id}`, data),
+  updateReceptionniste: (id, data) => api.put(`/receptionnistes/${id}`, data),
+  updateAdmin: (id, data) => api.put(`/admin/${id}`, data),
 };
 
 // Gestion des médecins
@@ -71,24 +82,10 @@ export const authAPI = {
 // Patients
 export const patientsAPI = {
   getAllPatients: () => api.get('/patients'),
-  getPatientById: (id) => api.get(`/patients/${id}`),
   createPatient: (data) => api.post('/patients', data),
-  updatePatient: (id, data) => api.put(`/patients/${id}`, data),
   deletePatient: (id) => api.delete(`/patients/${id}`),
-=======
-  getAllMedecins: () => api.get('/medecins'),
-  getMedecinById: (id) => api.get(`/medecin/${id}`),
-  getPatientById: (id) => api.get(`/patient/${id}`),
-  getAllMagasiniers: () => api.get('/magasiniers'),
-  getUserByCIN : (CIN) => api.get(`/users/${CIN}`),
-  getAllInfirmiers : () => api.get('/infirmiers'),
-  updatePatient: (id, data) => api.put(`/patients/${id}`, data),
-  updateMedecin: (id, data) => api.put(`/medecins/${id}`, data),
-  updateInfirmier: (id, data) => api.put(`/infirmiers/${id}`, data),
-  updateMagasinier: (id, data) => api.put(`/magasiniers/${id}`, data),
-  updateReceptionniste: (id, data) => api.put(`/receptionnistes/${id}`, data),
-  updateAdmin: (id, data) => api.put(`/admin/${id}`, data),
->>>>>>> 47c75a4ddb950c6409aa7351181805d0d34e571b
+  /* //salat hna  */ 
+  
 };
 
 // Gestion des rendez-vous
@@ -136,10 +133,8 @@ export const produitLivraisonAPI = {
   getProduitLivraisonByLivraisonId: (id) => api.get(`/livraison-produit/${id}`),
 };
 
-<<<<<<< HEAD
 
 
-=======
 // gestion des signalement-repture-malfonctionnement
 export const signaleAPI = {
   getSignalements: () => api.get('/signalIncident/index'),
@@ -148,7 +143,6 @@ export const signaleAPI = {
   deleteSignale: (id) => api.delete(`/signalIncident/${id}/destroy`),
   getSignaleById: (id) => api.get(`/signalIncident/${id}/show`),
 };
->>>>>>> 47c75a4ddb950c6409aa7351181805d0d34e571b
 
 // Export par défaut
 export default api;

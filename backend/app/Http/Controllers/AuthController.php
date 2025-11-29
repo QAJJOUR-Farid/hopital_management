@@ -182,7 +182,6 @@ class AuthController extends Controller
             'message' => 'Déconnexion réussie'
         ]);
     }
-<<<<<<< HEAD
 public function update(Request $request, $CIN)
 {
     // Debug: voir ce qui est reçu
@@ -233,27 +232,25 @@ public function update(Request $request, $CIN)
 
     return response()->json($user);
 }
-}
-=======
-
-
-    public function getUserByCIN($CIN)
-{
+ public function getUserByCIN($CIN){
     // Charger l'utilisateur avec toutes ses relations
     $user = User::with(['infirmiers', 'medecins', 'patient', 'admin', 'magasiniers', 'receptionniste'])
         ->find($CIN);
 
     if (!$user) {
-        return response()->json(['error' => 'Utilisateur non trouvé'], 404);
-    }
+        return response()->json(['error' => 'Utilisateur non trouvé'], 404);}
 
     // Ajouter le rôle
     $user->role = $this->getUserRole($user);
 
     return response()->json($user);
 }
-
-
-
 }
->>>>>>> 47c75a4ddb950c6409aa7351181805d0d34e571b
+
+
+
+   
+
+
+
+

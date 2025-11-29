@@ -149,7 +149,7 @@ const Users = () => {
       } else {
         // Ajout d'un nouvel utilisateur
         response = await userAPI.createUser(formData);
-        alert('Utilisateur ajouté avec succès');
+        alert('Utilisateur ajouté avec succès'+response);
       }
 
       // Recharger la liste des utilisateurs
