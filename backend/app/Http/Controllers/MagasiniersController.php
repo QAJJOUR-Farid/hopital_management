@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Log;
 
 class MagasiniersController extends Controller
 {
+
+    public function index(){
+        return Magasiniers::with('user')->get();
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -63,11 +67,11 @@ class MagasiniersController extends Controller
     {
         //validation des donnees
         $data = $request->validate([
-              'CIN' => 'sometimes|string|unique:users',
+              'CIN' => 'sometimes|string|unique:users,CIN,' . $magasinier->CIN . ',CIN',
             'nom' => 'sometimes|string',
             'prenom' => 'sometimes|string',
             'date_naissance' => 'sometimes|date',
-            'email' => 'sometimes|email|unique:users',
+            'email' => 'sometimes|email|unique:users,email,' . $magasinier->CIN . ',CIN',
             'password' => 'sometimes|string|min:6',
             'adresse' => 'nullable|string',
             'num_tel' => 'nullable|string'
@@ -76,7 +80,7 @@ class MagasiniersController extends Controller
     try {
         // mettre a jour l'utilisateur
         if ($magasinier->user) {
-            
+
             // mettre a jour magasinier
             $magasinier->user->update($data);
         }

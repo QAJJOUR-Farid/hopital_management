@@ -16,9 +16,10 @@ class InfirmiersController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        //
-    }
+{
+    $infirmiers = Infirmiers::with('user')->get();
+    return response()->json($infirmiers);
+}
 
     /**
      * Show the form for creating a new resource.
@@ -103,28 +104,44 @@ class InfirmiersController extends Controller
             'nom'=>'sometimes|string',
             'prenom'=>'sometimes|string',
             'date_naissance'=>'sometimes|date',
-            'email' => 'sometimes|email|unique:users',
+            'email' => 'sometimes|email|unique:users,email,' . $infirmier->CIN . ',CIN',
             'password'=>'sometimes|string|min:6',
             'adresse'=>'sometimes|string|nullable',
             'num_tel'=>'sometimes|string|nullable',
             'service'=>'sometimes|string'
-           
+
     ]);
 
     try {
-            // mettre a jour l'utilisateur
+        // Debug logging
+        Log::info('Infirmier update request', [
+            'infirmier_id' => $infirmier->id_infirmier,
+            'request_data' => $data
+        ]);
+
+        // mettre a jour l'utilisateur
         if ($infirmier->user) {
+            // Separate user data from infirmier data
+            $userData = collect($data)->except(['service'])->toArray();
+            $infirmierData = collect($data)->only(['service'])->toArray();
+
+            // mettre a jour user
+            $infirmier->user->update($userData);
 
             // mettre a jour infirmier
-            $infirmier->user->update($data);
+            if (!empty($infirmierData)) {
+                $result = $infirmier->update($infirmierData);
+                Log::info('Infirmier update result', ['result' => $result, 'new_service' => $infirmier->service]);
+            }
         }
 
         return response()->json(['message' => 'infirmier updated successfully']);
     } catch (\Exception $e) {
+        Log::error('Infirmier update error', ['error' => $e->getMessage()]);
         return response()->json(['error' => $e->getMessage()], 500);
     }
-    
-        
+
+
     }
 
     /**

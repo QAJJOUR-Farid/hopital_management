@@ -78,7 +78,7 @@ class PatientController extends Controller
 
         return response()->json([
             'message' => 'Patient created successfully']);
-            
+
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
@@ -91,9 +91,16 @@ class PatientController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Patient $patient)
+    public function show(Patient $id)
     {
         //
+        $patient = Patient::with('user')->find($id);
+
+        if (!$patient) {
+            return response()->json(['error' => 'Patient non trouvé'], 404);
+        }
+
+        return response()->json($patient);
     }
 
     /**
@@ -107,7 +114,7 @@ class PatientController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    // 
+    //
     public function update(Request $request, Patient $patient)
 {
     //validation des donnees
@@ -129,11 +136,18 @@ class PatientController extends Controller
     try {
         // mettre a jour l'utilisateur
         if ($patient->user) {
-            $patient->user->update($data); // pas de hash ici
-        }
+            // Separate user data from patient data
+            $userData = collect($data)->except(['gender', 'poids', 'height', 'id_rec'])->toArray();
+            $patientData = collect($data)->only(['gender', 'poids', 'height', 'id_rec'])->toArray();
 
-        // mettre a jour patient
-        $patient->update($data);
+            // mettre a jour user
+            $patient->user->update($userData);
+
+            // mettre a jour patient
+            if (!empty($patientData)) {
+                $patient->update($patientData);
+            }
+        }
 
         return response()->json(['message' => 'Patient updated successfully']);
 

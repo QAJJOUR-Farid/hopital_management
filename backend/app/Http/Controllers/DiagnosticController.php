@@ -17,8 +17,8 @@ class DiagnosticController extends Controller
      */
     public function index()
     {
-        //
-        return response()->json(Diagnostic::all());
+        $diagnostics = Diagnostic::with(['patient.user', 'medecin.user'])->get();
+        return response()->json($diagnostics);
     }
 
 

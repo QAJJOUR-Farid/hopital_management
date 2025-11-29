@@ -126,24 +126,38 @@ class AdminController extends Controller
             $admin->user->update($data); // pas de hash
         }
 
-        // mettre a jour l'utilisateur
-        $admin->update([]);
+        // Admin table has no additional fields to update
+        // $admin->update([]); // Not needed
 
         return response()->json(['message' => 'Admin updated successfully']);
 
     } catch (\Exception $e) {
         return response()->json(['error' => $e->getMessage()], 500);
     }
-
-    //code appointment !!!!?
-        $appointment = Admin::findOrFail($admin->id());
-        $appointment->update($request->all());
-        return response()->json($appointment);
 }
 
 public function getAllUsers() {
-    $users = User::all();
+    $users = User::with(['admin', 'medecins', 'infirmiers', 'magasiniers', 'receptionniste', 'patient'])->get();
+
+    // Add role to each user
+    $users->transform(function ($user) {
+        $user->role = $this->getUserRole($user);
+        return $user;
+    });
+
     return response()->json($users);
+}
+
+private function getUserRole($user)
+{
+    // Vérifier chaque relation pour déterminer le rôle
+    if ($user->admin) return 'admin';
+    if ($user->medecins) return 'medecin';
+    if ($user->infirmiers) return 'infirmier';
+    if ($user->magasiniers) return 'magasinier';
+    if ($user->receptionniste) return 'receptionniste';
+    if ($user->patient) return 'patient';
+    return 'user';
 }
 
 

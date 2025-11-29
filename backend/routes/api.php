@@ -17,6 +17,13 @@ use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 
+// get all medecins
+Route::get('/medecins', [MedecinsController::class, 'index']);
+// get medecin by id
+Route::get('/medecin/{id}', [MedecinsController::class, 'show'])->where('id', '[0-9]+');
+// get patient by id
+Route::get('/patient/{id}', [PatientController::class, 'show'])->where('id', '[0-9]+');
+
 // Auth
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -109,11 +116,18 @@ Route::patch('/users/{CIN}/state', [AdminController::class, 'changeState']); // 
 //signaler un repture
 Route::post('/signalIncident',[SignalIncidentController::class,'store']);
 //suprimmer un signal /rupture
-Route::delete('/signalIncident/{signalIncident}/destroy',[SignalIncidentController::class, 'destroy'])->where('signal_incidents', '[0-9]+');
+Route::delete('/signalIncident/{signalIncident}/destroy',[SignalIncidentController::class, 'destroy'])->where('signalIncident', '[0-9]+');
 //modifier un signal_incidents
-Route::put('/signalIncident/{signalIncident}/update', [SignalIncidentController::class, 'update'])->where('signal_incidents', '[0-9]+');
+Route::put('/signalIncident/{signalIncident}/update', [SignalIncidentController::class, 'update'])->where('signalIncident', '[0-9]+');
 //get un signal_incidents
-Route::get('/signalIncident/{signalIncident}/show', [SignalIncidentController::class, 'show'])->where('signal_incidents', '[0-9]+');
+Route::get('/signalIncident/{signalIncident}/show', [SignalIncidentController::class, 'show'])->where('signalIncident', '[0-9]+');
 //retourne tous signal_incidents
 Route::get('/signalIncident/index', [SignalIncidentController::class, 'index']);
 
+// Récupérer tous les magasiniers
+Route::get('/magasiniers', [MagasiniersController::class, 'index']);
+
+// Récupérer tous les infirmiers
+Route::get('/infirmiers', [InfirmiersController::class, 'index']);
+// recuperer user by CIN
+Route::get('/users/{CIN}', [AuthController::class, 'getUserByCIN']);

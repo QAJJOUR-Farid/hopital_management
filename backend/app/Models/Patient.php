@@ -17,10 +17,11 @@ class Patient extends Model
         'id_rec'
     ];
 
-   
+
 
     public function user()
     {
         return $this->belongsTo(User::class, 'CIN', 'CIN');
     }
+
 }

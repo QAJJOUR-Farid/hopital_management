@@ -30,6 +30,18 @@ export const userAPI = {
   updateUser: (CIN, userData) => api.put(`/users/${CIN}`, userData),
   deleteUser: (CIN) => api.delete(`/users/${CIN}`), // ← Export ajouté
   changeUserState: (CIN) => api.patch(`/users/${CIN}/state`),
+  getAllMedecins: () => api.get('/medecins'),
+  getMedecinById: (id) => api.get(`/medecin/${id}`),
+  getPatientById: (id) => api.get(`/patient/${id}`),
+  getAllMagasiniers: () => api.get('/magasiniers'),
+  getUserByCIN : (CIN) => api.get(`/users/${CIN}`),
+  getAllInfirmiers : () => api.get('/infirmiers'),
+  updatePatient: (id, data) => api.put(`/patients/${id}`, data),
+  updateMedecin: (id, data) => api.put(`/medecins/${id}`, data),
+  updateInfirmier: (id, data) => api.put(`/infirmiers/${id}`, data),
+  updateMagasinier: (id, data) => api.put(`/magasiniers/${id}`, data),
+  updateReceptionniste: (id, data) => api.put(`/receptionnistes/${id}`, data),
+  updateAdmin: (id, data) => api.put(`/admin/${id}`, data),
 };
 
 // Gestion des rendez-vous
@@ -75,6 +87,15 @@ export const produitLivraisonAPI = {
   updateProduitLivraison: (id, data) => api.put(`/livraison-produit/update/${id}`, data),
   deleteProduitLivraison: (id) => api.delete(`/livraison-produit/delete/${id}`),
   getProduitLivraisonByLivraisonId: (id) => api.get(`/livraison-produit/${id}`),
+};
+
+// gestion des signalement-repture-malfonctionnement
+export const signaleAPI = {
+  getSignalements: () => api.get('/signalIncident/index'),
+  createSignale: (data) => api.post('/signalIncident', data),
+  updateSignale: (id, data) => api.put(`/signalIncident/${id}/update`, data),
+  deleteSignale: (id) => api.delete(`/signalIncident/${id}/destroy`),
+  getSignaleById: (id) => api.get(`/signalIncident/${id}/show`),
 };
 
 // Export par défaut

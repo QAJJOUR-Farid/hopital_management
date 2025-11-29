@@ -94,18 +94,18 @@ class ReceptionnistesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    
-    
+
+
 public function update(Request $request, Receptionnistes $receptionniste)
 {
     //validation des donnees
     $data = $request->validate([
         'nom' => 'sometimes|string',
         'num_tel' => 'sometimes|string|nullable',
-        'CIN' => 'sometimes|string|unique:users',
+        'CIN' => 'sometimes|string|unique:users,CIN,' . $receptionniste->CIN . ',CIN',
         'prenom' => 'sometimes|string',
         'date_naissance' => 'sometimes|date',
-        'email' => 'sometimes|email|unique:users',
+        'email' => 'sometimes|email|unique:users,email,' . $receptionniste->CIN . ',CIN',
         'password' => 'sometimes|string|min:6',
         'adresse' => 'nullable|string'
     ]);

@@ -9,7 +9,12 @@ import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import RendezVous from './pages/RendezVous';
 import Produits from './pages/Produits';
-import Diagnostics from './pages/Diagnostics';
+import Diagnostics from './pages/diagnostics/Diagnostics';
+import DiagnosticsInfermier from './pages/diagnostics/DiagnosticsInfermier';
+import Signale from './pages/Signales/Signale';
+import SignaleMagasinier from './pages/Signales/SignaleMagasinier';
+import VoirMedecins from './pages/VoirMedecins';
+import ModifierInfos from './pages/ModifierInfos';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -61,6 +66,19 @@ const MainLayout = () => {
             {/* Tableau de bord selon le rôle */}
             <Route path="/" element={<Dashboard />} />
             
+            {/*Route Signale  */}
+            <Route path="/signale" element={
+              <ProtectedRoute allowedRoles={['infirmier']}>
+                <Signale />
+              </ProtectedRoute>
+            }/>
+
+            {/*Route Signale pour magasinier  */}
+            <Route path="/signaleMagasinier" element={
+              <ProtectedRoute allowedRoles={['magasinier']}>
+                <SignaleMagasinier />
+              </ProtectedRoute>
+            }/>
             {/* Routes Admin */}
             <Route path="/users" element={
               <ProtectedRoute allowedRoles={['admin']}>
@@ -74,16 +92,34 @@ const MainLayout = () => {
                 <RendezVous />
               </ProtectedRoute>
             } />
-            
+            <Route path="/voirMedecins" element={
+              <ProtectedRoute allowedRoles={['patient']}>
+                <VoirMedecins />
+              </ProtectedRoute>
+            }/>
+
+            <Route path="/modifierInfos" element={
+              <ProtectedRoute>
+                <ModifierInfos />
+              </ProtectedRoute>
+            }/>
+
             <Route path="/produits" element={
               <ProtectedRoute allowedRoles={['admin', 'magasinier']}>
                 <Produits />
               </ProtectedRoute>
             } />
             
+
             <Route path="/diagnostics" element={
-              <ProtectedRoute allowedRoles={['admin', 'medecin', 'infirmier']}>
+              <ProtectedRoute allowedRoles={['admin', 'medecin']}>
                 <Diagnostics />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/diagnosticsInfermier" element={
+              <ProtectedRoute allowedRoles={['infirmier']}>
+                <DiagnosticsInfermier />
               </ProtectedRoute>
             } />
           </Routes>

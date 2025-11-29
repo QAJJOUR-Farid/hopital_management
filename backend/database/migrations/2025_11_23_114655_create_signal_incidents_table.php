@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -18,7 +19,7 @@ return new class extends Migration
             $table->text('descriptionS');
             $table->enum('statut', ['resolu', 'nonResolu'])->default('nonResolu');
             $table->integer('nbProduit')->nullable();
-            
+
             //foreign keys
             $table->unsignedBigInteger('id_infirmier');
             $table->unsignedBigInteger('id_magasinier');

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SignalIncident;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Exception; 
+use Exception;
 use Illuminate\Support\Facades\log;
 
 class SignalIncidentController extends Controller
@@ -15,8 +15,13 @@ class SignalIncidentController extends Controller
      */
     public function index()
     {
-        $signalIncident = SignalIncident::all();
-         return response()->json($signalIncident, 200);
+        $signalIncident = SignalIncident::with([
+        'produit',
+        'infirmier.user',
+        'magasinier.user'
+    ])->get();
+
+    return response()->json($signalIncident, 200);
     }
 
     /**
@@ -41,14 +46,14 @@ class SignalIncidentController extends Controller
             'idP' => 'required|exists:produits,idP',
         ]);
 
-       
+
         $incident = SignalIncident::create($data);
 
         return response()->json([
             'message' => 'Signal Incident signalé avec succès',
             'data'    => $incident
         ], 200);
-        
+
     }
 
     /**
@@ -77,6 +82,7 @@ class SignalIncidentController extends Controller
         $data =$request->validate([
            'type' => 'sometimes|in:repture,malfonctionnement',
             'descriptionS' => 'sometimes|string',
+            'statut' => 'sometimes|in:resolu,nonResolu,enAttente',
             'nbProduit' => 'nullable|integer',
             'id_infirmier' => 'sometimes|exists:infirmiers,id_infirmier',
             'id_magasinier' => 'sometimes|exists:magasiniers,id_magasinier',

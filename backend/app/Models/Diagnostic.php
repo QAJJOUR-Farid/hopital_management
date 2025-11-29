@@ -14,6 +14,8 @@ class Diagnostic extends Model
         'description',
         'resultats',
         'id_patient',
+        'id_medecin',
+        'id_infirmier',
         'etat'
         ];
 
