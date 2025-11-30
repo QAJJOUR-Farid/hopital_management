@@ -24,7 +24,6 @@ import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles/custom.scss";
-<<<<<<< HEAD
 import DiagnosticsInfermier from './pages/diagnostics/DiagnosticsInfermier';
 import Signale from './pages/Signales/Signale';
 import SignaleMagasinier from './pages/Signales/SignaleMagasinier';
@@ -35,15 +34,6 @@ import DiagnosticsEtPatients from "./pages/diagnostics/Diagnostics&Patient";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/custom.scss';
 
-=======
-import DiagnosticsInfermier from "./pages/diagnostics/DiagnosticsInfermier";
-import Signale from "./pages/Signales/Signale";
-import SignaleMagasinier from "./pages/Signales/SignaleMagasinier";
-import VoirMedecins from "./pages/VoirMedecins";
-import ModifierInfos from "./pages/ModifierInfos";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "./styles/custom.scss";
->>>>>>> 93b1c8aa5b304f4ed775d2ebe79e32d24e2f8a2b
 
 // Composant de chargement
 const LoadingSpinner = () => (
@@ -198,7 +188,6 @@ const MainLayout = () => {
               }
             />
 
-<<<<<<< HEAD
             <Route path="/diagnostics&Patient" element={
               <ProtectedRoute allowedRoles={['admin', 'medecin','receptionniste']}>
                 <DiagnosticsEtPatients />
@@ -221,26 +210,7 @@ const MainLayout = () => {
                 <DiagnosticsMedecin />
               </ProtectedRoute>
             } />
-            
-=======
-            <Route
-              path="/diagnostics"
-              element={
-                <ProtectedRoute allowedRoles={["admin", "medecin"]}>
-                  <Diagnostics />
-                </ProtectedRoute>
-              }
-            />
 
-            <Route
-              path="/diagnosticsInfermier"
-              element={
-                <ProtectedRoute allowedRoles={["infirmier"]}>
-                  <DiagnosticsInfermier />
-                </ProtectedRoute>
-              }
-            />
->>>>>>> 93b1c8aa5b304f4ed775d2ebe79e32d24e2f8a2b
           </Routes>
         </div>
       </div>
