@@ -30,19 +30,15 @@ const SignaleMagasinier = () => {
 
   const loadCurrentMagasinierInfo = async () => {
     if (!user?.CIN) {
-      console.error('❌ Aucun CIN trouvé dans user');
       return;
     }
 
     try {
-      console.log('🔍 Chargement magasinier pour CIN:', user.CIN);
       const response = await userAPI.getUserByCIN(user.CIN);
-      console.log('📋 Réponse getUserByCIN:', response.data);
       
       const magasinierId = response.data?.magasiniers?.id_magasinier;
       
       if (magasinierId) {
-        console.log('✅ ID magasinier trouvé:', magasinierId);
         setCurrentMagasinierId(magasinierId);
       } else {
         console.error('❌ Aucun ID magasinier trouvé dans la réponse');
@@ -298,14 +294,7 @@ const SignaleMagasinier = () => {
         </Alert>
       )}
 
-      {currentMagasinierId && (
-        <Alert variant="info" className="mb-3">
-          <small>
-            <i className="fas fa-filter me-2"></i>
-            Affichage des signalements assignés à vous 
-          </small>
-        </Alert>
-      )}
+      
 
       {/* Statistiques */}
       <div className="row mb-4">
@@ -359,7 +348,6 @@ const SignaleMagasinier = () => {
       <Table striped bordered hover responsive className="modern-table">
         <thead>
           <tr>
-            <th>ID</th>
             <th>Type</th>
             <th>Produit</th>
             <th>Quantité</th>
@@ -375,12 +363,10 @@ const SignaleMagasinier = () => {
             const signaleId = signale.idS || signale.id;
             return (
               <tr key={signaleId || `signale-${index}`}>
-                <td>#{signaleId || 'N/A'}</td>
                 <td>{getTypeBadge(signale.type)}</td>
                 <td>
                   <strong>{getProduitName(signale.idP)}</strong>
                   <br />
-                  <small className="text-muted">ID: {signale.idP}</small>
                 </td>
                 <td>{signale.nbProduit || 'N/A'}</td>
                 <td>
@@ -469,11 +455,10 @@ const SignaleMagasinier = () => {
                       <strong>Infirmier:</strong><br />
                       {getInfirmierName(selectedSignale.id_infirmier)}
                       <br />
-                      <small className="text-muted">ID: {selectedSignale.id_infirmier}</small>
                     </p>
                     <p>
                       <strong>Magasinier assigné:</strong><br />
-                      <small className="text-muted">ID: {selectedSignale.id_magasinier}</small>
+                      <small className="text-muted">{getFullName(user)}</small>
                     </p>
                   </Card.Body>
                 </Card>

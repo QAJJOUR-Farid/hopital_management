@@ -165,7 +165,6 @@ const VoirMedecins = () => {
                 <div>
                   <strong>{getFullName(medecin.user)}</strong>
                   <br />
-                  <small className="text-muted">ID: {medecin.id_medecin}</small>
                 </div>
               </td>
               <td>

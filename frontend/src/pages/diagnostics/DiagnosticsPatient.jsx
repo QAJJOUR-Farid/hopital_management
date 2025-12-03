@@ -76,8 +76,8 @@ const DiagnosticsPatient = () => {
 
   // Fonction pour obtenir le CIN du médecin
   const getMedecinCIN = (diagnostic) => {
-    if (diagnostic.medecin && diagnostic.medecin.user && diagnostic.medecin.user.CIN) {
-      return diagnostic.medecin.user.CIN;
+    if (diagnostic.medecin && diagnostic.medecin.user) {
+      return diagnostic.medecin.user.CIN || 'N/A';
     }
     return 'N/A';
   };
@@ -180,9 +180,7 @@ const DiagnosticsPatient = () => {
       <Table striped bordered hover responsive className="modern-table">
         <thead>
           <tr>
-            <th>ID</th>
             <th>Médecin</th>
-            <th>CIN Médecin</th>
             <th>Date</th>
             <th>Description</th>
             <th>Résultats</th>
@@ -191,18 +189,13 @@ const DiagnosticsPatient = () => {
         </thead>
         <tbody>
           {diagnostics.map((diagnostic, index) => {
-            const diagnosticId = diagnostic.idD || diagnostic.id || diagnostic.id_diagnostic;
             return (
               <tr key={getUniqueKey(diagnostic, index)}>
-                <td>#{diagnosticId || 'N/A'}</td>
                 <td>
                   <strong>{getMedecinName(diagnostic)}</strong>
                   <br />
-                  <small className="text-muted">ID: {diagnostic.id_medecin || 'N/A'}</small>
                 </td>
-                <td>
-                  {getMedecinCIN(diagnostic)}
-                </td>
+
                 <td>{formatDate(diagnostic.dateD)}</td>
                 <td>
                   <div className="text-truncate" style={{ maxWidth: '200px' }} title={diagnostic.description}>

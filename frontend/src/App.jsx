@@ -31,7 +31,10 @@ import VoirMedecins from './pages/VoirMedecins';
 import ModifierInfos from './pages/ModifierInfos';
 import DiagnosticsPatient from "./pages/diagnostics/DiagnosticsPatient";
 import DiagnosticsEtPatients from "./pages/diagnostics/Diagnostics&Patient";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import Livraison from "./pages/Livraison";
+import ProduitAdmin from "./pages/ProduitAdmin";
+/* import Visiteur from "./pages/VisitorPage";
+ */import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/custom.scss';
 
 
@@ -93,7 +96,12 @@ const MainLayout = () => {
                 </ProtectedRoute>
               }
             />
-
+            {/* <Route path="/visiteur" element={
+              <ProtectedRoute allowedRoles={['admin', 'medecin', 'receptionniste', 'infirmier', 'magasinier', 'patient']}>
+                <Visiteur />
+              </ProtectedRoute>
+            } />
+ */}
             {/*Route Signale pour magasinier  */}
             <Route
               path="/signaleMagasinier"
@@ -160,7 +168,14 @@ const MainLayout = () => {
                 </ProtectedRoute>
               }
             />
-
+            <Route
+              path="/livraisons"
+              element={
+                <ProtectedRoute allowedRoles={["magasinier"]}>
+                  <Livraison />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/voirMedecins"
               element={
@@ -178,15 +193,22 @@ const MainLayout = () => {
                 </ProtectedRoute>
               }
             />
+            
 
             <Route
               path="/produits"
               element={
-                <ProtectedRoute allowedRoles={["admin", "magasinier"]}>
+                <ProtectedRoute allowedRoles={["magasinier"]}>
                   <Produits />
                 </ProtectedRoute>
               }
             />
+
+            <Route path="/produitsAdmin" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <ProduitAdmin />
+              </ProtectedRoute>
+            } />
 
             <Route path="/diagnostics&Patient" element={
               <ProtectedRoute allowedRoles={['admin', 'medecin','receptionniste']}>
@@ -211,6 +233,7 @@ const MainLayout = () => {
               </ProtectedRoute>
             } />
 
+            
           </Routes>
         </div>
       </div>

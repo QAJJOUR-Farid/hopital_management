@@ -168,6 +168,7 @@ const RendezVousPatient = () => {
         return;
       }
 
+      // Récupérer les détails du médecin à partir de CIN
       const medecinDetail = data.medecinsDetails.find(m => m.CIN === formData.medecin_cin);
 
       if (!medecinDetail) {
@@ -177,12 +178,15 @@ const RendezVousPatient = () => {
 
       const rendezVousData = {
         id_patient: data.currentPatient.id_patient,
-        id_medecin: medecinDetail.id_medecin,
+        id_medecin: medecinDetail.id_medecin, // Utiliser l'ID du médecin
         date_rv: `${formData.date_rv} ${formData.heure_rv}`,
         motif: formData.motif,
         statut: 'prévu',
-        id_rec: 1
+        // Ne pas inclure id_rec ou le mettre à null si ce n'est pas requis
+        id_rec: null  // <--- Modification clé : id_rec est null
       };
+
+      console.log("Données envoyées à l'API:", rendezVousData); // Debug pour vérifier les données
 
       await rendezVousAPI.createRendezVous(rendezVousData);
       
@@ -192,6 +196,7 @@ const RendezVousPatient = () => {
       loadRendezVous();
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Erreur lors de la création';
+      console.error("Erreur détaillée:", err); // Log l'erreur pour le débogage
       setStateValue('error', `Erreur: ${errorMessage}`);
     } finally {
       setStateValue('loading', false);
@@ -214,16 +219,14 @@ const RendezVousPatient = () => {
   // Récupération des informations
   const getMedecinInfo = (medecinId) => {
     const medecinDetail = data.medecinsDetails.find(m => m.id_medecin === medecinId);
-    // const medecin = data.medecins.find(m => m.CIN === medecinDetail?.CIN);
-      // return medecin || {};
-        const medecinUser = data.medecins.find(m => m.CIN === medecinDetail?.CIN);
+    const medecinUser = data.medecins.find(m => m.CIN === medecinDetail?.CIN);
 
-      if (!medecinDetail && !medecinUser) return null;
+    if (!medecinDetail && !medecinUser) return null;
 
-  return {
-    ...medecinUser,     // nom, prenom, email, CIN...
-    ...medecinDetail    // id_medecin, specialite, telephone...
-  };
+    return {
+      ...medecinUser,     // nom, prenom, email, CIN...
+      ...medecinDetail    // id_medecin, specialite, telephone...
+    };
   };
 
   // Effects
@@ -359,19 +362,14 @@ const RendezVousPatient = () => {
               ) : (
                 filteredRendezVous.map((rdv) => {
                   const medecin = getMedecinInfo(rdv.id_medecin);
-                    const status = statusConfig[rdv.statut] || {};
-                    
-                    const med = getMedecinInfo(rdv.id_medecin);
-
+                  const status = statusConfig[rdv.statut] || {};
+                  
                   return (
                     <tr key={rdv.idR}>
                       <td>
-                        <strong>Dr. {medecin.nom} {medecin.prenom}</strong>
-                        {/* {medecin.CIN && <div><small className="text-muted">CIN: {medecin.CIN}</small></div>} */}
+                        <strong>Dr. {medecin?.nom} {medecin?.prenom}</strong>
                       </td>
-                      <td>
-                        <td>{med?.specialite || "Non spécifié"}</td>
-                      </td>
+                      <td>{medecin?.specialite || "Non spécifié"}</td>
                       <td className="text-nowrap">{formatDate(rdv.date_rv)}</td>
                       <td><Badge bg={status.badge}>{status.text}</Badge></td>
                       <td><small className="text-muted">{rdv.motif || 'Non spécifié'}</small></td>
@@ -408,21 +406,14 @@ const RendezVousPatient = () => {
         </Modal.Header>
         <Form onSubmit={handleSubmitRendezVous}>
           <Modal.Body>
-            {currentPatient && (
-              <Alert variant="info" className="mb-3">
-                <i className="fas fa-user me-2"></i>
-                <strong>Patient:</strong> {currentPatient.nom} {currentPatient.prenom} 
-                {currentPatient.CIN && ` (CIN: ${currentPatient.CIN})`}
-              </Alert>
-            )}
-            
+
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label>Médecin *</Form.Label>
                   <Form.Select name="medecin_cin" value={formData.medecin_cin} onChange={handleFormChange} required>
                     <option value="">Sélectionnez un médecin</option>
-                    {medecins.map(medecin => (
+                    {data.medecins.map(medecin => (
                       <option key={medecin.CIN} value={medecin.CIN}>
                         Dr. {medecin.nom} {medecin.prenom} - {medecin.specialite}
                       </option>
@@ -492,8 +483,8 @@ const RendezVousPatient = () => {
             <Button variant="secondary" onClick={() => setShowModal(false)}>
               Annuler
             </Button>
-            <Button variant="primary" type="submit" disabled={loading || !medecins.length}>
-              {loading ? (
+            <Button variant="primary" type="submit" disabled={state.loading || !data.medecins.length}>
+              {state.loading ? (
                 <>
                   <Spinner size="sm" className="me-2" />
                   Création...

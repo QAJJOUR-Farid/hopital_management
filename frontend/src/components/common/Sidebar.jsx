@@ -19,13 +19,12 @@ const Sidebar = () => {
           { path: '/users', icon: 'fas fa-users-cog', label: 'Utilisateurs' },
           { path: '/Patients', icon: 'fas fa-user-injured', label: 'Patients' },
           { path: '/diagnostics&Patient', icon: 'fas fa-stethoscope', label: 'Diagnostics' },
-          { path: '/produits', icon: 'fas fa-pills', label: 'Produits' }
+          { path: '/produitsAdmin', icon: 'fas fa-pills', label: 'Produits' },
         ];
     
       case 'medecin':
         return [
           ...baseItems,
-          { path: '/rendezvous', icon: 'fas fa-calendar-check', label: 'Mes Rendez-vous' },
           { path: '/diagnosticsMedecin', icon: 'fas fa-stethoscope', label: 'Diagnostics' },
           { path: '/diagnostics&Patient', icon: 'fas fa-stethoscope', label: 'Patients' },
           { path: '/rendezvous-medecin', icon: 'fas fa-calendar-check', label: 'Mes Rendez-vous' }
@@ -42,7 +41,6 @@ const Sidebar = () => {
       case 'receptionniste':
         return [
           ...baseItems,
-          { path: '/rendezvous', icon: 'fas fa-calendar-check', label: 'Rendez-vous' },
           { path: '/diagnostics&Patient', icon: 'fas fa-stethoscope', label: 'Patients' },
           { path: '/rendezvous-rec', icon: 'fas fa-calendar-check', label: 'Rendez-vous' }
         ];
@@ -51,14 +49,13 @@ const Sidebar = () => {
         return [
           ...baseItems,
           { path: '/produits', icon: 'fas fa-pills', label: 'Gestion Stock' },
-          
+          { path: '/livraisons', icon: 'fas fa-calendar-check', label: 'Livraison' },
           { path: '/signaleMagasinier', icon: 'fas fa-pills', label: 'Signale' }
         ];
       
       case 'patient':
         return [
           ...baseItems,
-          { path: '/rendezvous', icon: 'fas fa-calendar-check', label: 'Mes Rendez-vous' },
           { path: '/voirMedecins', icon: 'fas fa-prescription', label: 'Médecins' },
           { path: '/mesDiagnostics', icon: 'fas fa-prescription', label: 'Mes Diagnostics' },
           { path: '/rendezvous-patient', icon: 'fas fa-calendar-check', label: 'Mes Rendez-vous' },
