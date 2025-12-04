@@ -164,7 +164,7 @@ const VoirMedecins = () => {
               <td>
                 <div>
                   <strong>{getFullName(medecin.user)}</strong>
-                  
+                  <br />
                 </div>
               </td>
               <td>

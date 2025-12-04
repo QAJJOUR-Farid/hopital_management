@@ -19,7 +19,7 @@ const Sidebar = () => {
           { path: '/users', icon: 'fas fa-users-cog', label: 'Utilisateurs' },
           { path: '/Patients', icon: 'fas fa-user-injured', label: 'Patients' },
           { path: '/diagnostics&Patient', icon: 'fas fa-stethoscope', label: 'Diagnostics' },
-          { path: '/produits', icon: 'fas fa-pills', label: 'Produits' }
+          { path: '/produitsAdmin', icon: 'fas fa-pills', label: 'Produits' },
         ];
     
       case 'medecin':
@@ -49,7 +49,7 @@ const Sidebar = () => {
         return [
           ...baseItems,
           { path: '/produits', icon: 'fas fa-pills', label: 'Gestion Stock' },
-          
+          { path: '/livraisons', icon: 'fas fa-calendar-check', label: 'Livraison' },
           { path: '/signaleMagasinier', icon: 'fas fa-pills', label: 'Signale' }
         ];
       

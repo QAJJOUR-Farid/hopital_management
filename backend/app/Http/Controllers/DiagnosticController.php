@@ -23,7 +23,7 @@ class DiagnosticController extends Controller
 
 
     public function getDiagnosticByPatientId($id){
-        return response()->json(Diagnostic::where('id_patient', $id)->get());
+        return response()->json(Diagnostic::where('id_patient', $id)->with(['medecin.user'])->get());
     }
 
     /**

@@ -12,7 +12,7 @@ import {
   Col,
   ListGroup
 } from 'react-bootstrap';
-import { patientsAPI, diagnosticsAPI } from '../../Services/api';
+import { patientsAPI, diagnosticsAPI, userAPI } from '../../Services/api';
 
 const Diagnostics = () => {
   const [patients, setPatients] = useState([]);
@@ -22,6 +22,7 @@ const Diagnostics = () => {
   const [patientDiagnostics, setPatientDiagnostics] = useState([]);
   const [showDiagnosticsModal, setShowDiagnosticsModal] = useState(false);
   const [loadingDiagnostics, setLoadingDiagnostics] = useState(false);
+  const [medecinsCache, setMedecinsCache] = useState({}); // Cache pour stocker les médecins
 
   useEffect(() => {
     loadPatients();
@@ -42,6 +43,22 @@ const Diagnostics = () => {
     }
   };
 
+  const loadMedecinDetails = async (medecinId) => {
+    if (medecinsCache[medecinId]) {
+      return medecinsCache[medecinId];
+    }
+
+    try {
+      const response = await userAPI.getMedecinById(medecinId);
+      const medecin = response.data;
+      setMedecinsCache(prev => ({ ...prev, [medecinId]: medecin }));
+      return medecin;
+    } catch (err) {
+      console.error('Erreur lors du chargement des détails du médecin:', err);
+      return null;
+    }
+  };
+
   const handleShowPatientDiagnostics = async (patient) => {
     setSelectedPatient(patient);
     setShowDiagnosticsModal(true);
@@ -50,6 +67,12 @@ const Diagnostics = () => {
     try {
       const response = await diagnosticsAPI.getDiagnosticByPatientId(patient.id_patient);
       setPatientDiagnostics(response.data);
+
+      // Charger les détails des médecins pour les diagnostics
+      const uniqueMedecinIds = [...new Set(response.data.map(d => d.medecin).filter(id => id && !medecinsCache[id]))];
+      if (uniqueMedecinIds.length > 0) {
+        await Promise.all(uniqueMedecinIds.map(id => loadMedecinDetails(id)));
+      }
     } catch (err) {
       console.error('Erreur lors du chargement des diagnostics:', err);
       setPatientDiagnostics([]);
@@ -206,17 +229,15 @@ const Diagnostics = () => {
             <>
               <Row className="mb-3">
                 <Col md={6}>
+                  <strong>CIN:</strong> {selectedPatient.user?.CIN || selectedPatient.CIN || selectedPatient.cin || 'N/A'}
                 </Col>
                 <Col md={6}>
-                  <strong>CIN:</strong> {selectedPatient.user?.CIN || selectedPatient.CIN || selectedPatient.cin || 'N/A'}
+                  <strong>Téléphone:</strong> {selectedPatient.telephone || 'N/A'}
                 </Col>
               </Row>
               <Row className="mb-3">
                 <Col md={6}>
                   <strong>Nom Complet:</strong> {getFullName(selectedPatient.user)}
-                </Col>
-                <Col md={6}>
-                  <strong>Téléphone:</strong> {selectedPatient.telephone || 'N/A'}
                 </Col>
               </Row>
 
@@ -232,13 +253,9 @@ const Diagnostics = () => {
               ) : patientDiagnostics.length > 0 ? (
                 <div className="diagnostics-list">
                   {patientDiagnostics.map((diagnostic, index) => (
-                    <Card key={diagnostic.idD || index} className="mb-3">
+                    <Card key={index} className="mb-3">
                       <Card.Body>
                         <Row>
-                          <Col md={3}>
-                            <strong>ID Diagnostic:</strong><br />
-                            #{diagnostic.idD}
-                          </Col>
                           <Col md={3}>
                             <strong>Date:</strong><br />
                             {formatDate(diagnostic.dateD)}
@@ -249,7 +266,14 @@ const Diagnostics = () => {
                           </Col>
                           <Col md={3}>
                             <strong>Médecin:</strong><br />
-                            {diagnostic.medecin ? getFullName(diagnostic.medecin.user) : 'N/A'}
+                            {diagnostic.medecin ? (
+                              // Utiliser le cache ou charger les détails du médecin
+                              <p>
+                                {medecinsCache[diagnostic.medecin] ? 
+                                  getFullName(medecinsCache[diagnostic.medecin].user) : 
+                                  "Chargement..."}
+                              </p>
+                            ) : 'N/A'}
                           </Col>
                         </Row>
                         <Row className="mt-3">

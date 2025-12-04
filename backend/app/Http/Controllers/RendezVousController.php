@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\RendezVous;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Exception; 
+use Exception;
 use Illuminate\Support\Facades\log;
 
 class RendezVousController extends Controller
@@ -36,13 +36,13 @@ class RendezVousController extends Controller
         $data=$request->validate([
             'id_patient'=>'required|exists:patients,id_patient',
             'id_medecin'=>'required|exists:medecins,id_medecin',
-            'id_rec'=>'required|exists:receptionnistes,id_rec',
+            'id_rec'=>'nullable|exists:receptionnistes,id_rec',
             'date_rv'=>'required|date',
             'dateDePrisedeRV'=>'nullable|date',
             'statut'=>'required|string|in:prévu,confirmé,terminé,annulé',
-            'motif'=>'required|string' 
+            'motif'=>'required|string'
         ]);
-        
+
         if(!isset($data['dateDePrisedeRV'])){
 
             $data['dateDePrisedeRV']=now();
@@ -50,9 +50,9 @@ class RendezVousController extends Controller
         try{
         DB::transaction(function() use ($data){
             RendezVous::create($data);
-        }); 
+        });
          return response()->json(['message' => 'Rendez-vous créé avec succès'],201);
-        
+
          } catch (Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);

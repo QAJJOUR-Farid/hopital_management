@@ -133,6 +133,35 @@ const DiagnosticsPatient = () => {
     }
   };
 
+  // Fonction pour obtenir le nom complet d'un utilisateur
+  const getFullName = (user) => {
+    if (!user) return '';
+    return `${user.prenom || ''} ${user.nom || ''}`.trim();
+  };
+
+  // Fonction pour obtenir le nom du médecin
+  const getMedecinName = (diagnostic) => {
+    if (diagnostic.medecin && diagnostic.medecin.user) {
+      return `Dr. ${getFullName(diagnostic.medecin.user)}`;
+    }
+    return 'N/A';
+  };
+
+  // Fonction pour obtenir le CIN du médecin
+  const getMedecinCIN = (diagnostic) => {
+    if (diagnostic.medecin && diagnostic.medecin.user) {
+      return diagnostic.medecin.user.CIN || 'N/A';
+    }
+    return 'N/A';
+  };
+
+  // Fonction pour générer une clé unique
+  const getUniqueKey = (diagnostic, index) => {
+    const diagnosticId = diagnostic.idD || diagnostic.id || diagnostic.id_diagnostic;
+    return diagnosticId || `diagnostic-${index}-${Date.now()}`;
+  };
+
+  // Fonction pour obtenir le badge d'état
   const getEtatBadge = (etat) => {
     if (!etat) return <Badge bg="secondary">Inconnu</Badge>;
     const etatLower = etat.toLowerCase();

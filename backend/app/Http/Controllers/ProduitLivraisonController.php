@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Produit;
 use App\Models\ProduitLivraison;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -51,7 +52,13 @@ class ProduitLivraisonController extends Controller
                 'idP' => $data['idP'],
                 'quantite' => $data['quantite']
             ]);
+            $produit = Produit::where('idP', $data['idP'])->firstOrFail();
+
+                // On ajoute la quantité livrée au stock existant
+                $produit->nombre = $produit->nombre + $data['quantite'];
+                $produit->save();
         });
+
         return response()->json([
             'message' => 'product-livraison created successfully']);
         }catch(Exception $e){
@@ -94,6 +101,7 @@ class ProduitLivraisonController extends Controller
                 $produitLivraison->update($data);
             });
 
+
             return response()->json(['message' => 'Produit-livraison mis à jour avec succès'], 200);
 
         } catch (Exception $e) {
@@ -105,11 +113,16 @@ class ProduitLivraisonController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ProduitLivraison $produitLivraison)
+    public function destroy($produitLivraison)
     {
         //
         try {
-            $produitLivraison->delete();
+            $produitLivraisonX = ProduitLivraison::findOrFail($produitLivraison);
+            $produit = Produit::where('idP', $produitLivraisonX->idP)->firstOrFail();
+            // 2. **AUTO - quantite**
+            $produit->decrement('nombre', $produitLivraisonX->quantite);
+            $produit->save();
+            $produitLivraisonX->delete();
             return response()->json(['message' => 'Produit-livraison supprimé avec succès'], 200);
 
         } catch (Exception $e) {

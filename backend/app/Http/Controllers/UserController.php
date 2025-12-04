@@ -75,7 +75,7 @@ class UserController extends Controller
 
         // Trouver l'utilisateur
         $user = User::where('CIN', $CIN)->first();
-        
+
         if (!$user) {
             Log::error('Utilisateur non trouvé: ' . $CIN);
             return response()->json(['message' => 'Utilisateur non trouvé'], 404);
@@ -141,7 +141,7 @@ class UserController extends Controller
     {
         try {
             $user = User::where('CIN', $CIN)->first();
-            
+
             if (!$user) {
                 return response()->json(['message' => 'Utilisateur non trouvé'], 404);
             }
@@ -163,7 +163,7 @@ class UserController extends Controller
     {
         try {
             $user = User::where('CIN', $CIN)->first();
-            
+
             if (!$user) {
                 return response()->json(['message' => 'Utilisateur non trouvé'], 404);
             }

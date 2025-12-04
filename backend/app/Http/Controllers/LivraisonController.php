@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Livraison;
+use App\Models\Produit;
+use App\Models\ProduitLivraison;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +18,7 @@ class LivraisonController extends Controller
     public function index()
     {
         //
-        return response()->json(Livraison::all());
+        return response()->json(Livraison::with('magasinier', 'produits.produit')->get());
     }
 
     /**
@@ -36,7 +38,7 @@ class LivraisonController extends Controller
         $data = $request->validate([
             'dateL' => 'required|date',
             'fournisseur' => 'required|string',
-            'id_magasinier ' => 'nullable|exists:magasiniers,id_magasinier'
+            'id_magasinier' => 'nullable|exists:magasiniers,id_magasinier'
         ]);
         try{
             DB::transaction(function() use ($data) {
@@ -81,7 +83,7 @@ class LivraisonController extends Controller
         $data = $request->validate([
             'dateL' => 'required|date',
             'fournisseur' => 'required|string',
-            'id_magasinier ' => 'nullable|exists:magasiniers,id_magasinier'
+            'id_magasinier' => 'nullable|exists:magasiniers,id_magasinier'
         ]);
 
         try {
@@ -103,6 +105,18 @@ class LivraisonController extends Controller
     {
         //
         try {
+            $lignes = ProduitLivraison::where('idL', $livraison->id)->get();
+
+                foreach($lignes as $ligne) {
+                    //  Pour chaque ligne, on décrémente le stock du produit correspondant
+                    $produit = Produit::where('idP', $ligne->idP)->first();
+
+                    if($produit) {
+                        // Stock = Stock - Quantité de la livraison
+                        $produit->decrement('nombre', $ligne->quantite);
+                        $produit->save();
+                    }
+                }
             $livraison->delete();
             return response()->json(['message' => 'livraison supprimé avec succès'], 200);
 
