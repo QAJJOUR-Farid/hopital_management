@@ -82,9 +82,7 @@ const Produits = () => {
       <Table striped bordered hover responsive className="modern-table">
         <thead>
           <tr>
-            <th>ID</th>
             <th>Nom</th>
-            <th>Description</th>
             <th>Prix</th>
             <th>Quantité</th>
             <th>Catégorie</th>
@@ -94,10 +92,8 @@ const Produits = () => {
         <tbody>
           {produits.map((produit) => (
             <tr key={produit.id}>
-              <td>#{produit.id}</td>
               <td>{produit.nom}</td>
-              <td>{produit.description}</td>
-              <td>{produit.prix} DH</td>
+              <td>{produit.prix_unitaire} DH </td>
               <td>
                 <Badge bg={getStockBadge(produit.quantite)}>
                   {produit.quantite} unités

@@ -403,7 +403,7 @@ const DiagnosticsInfermier = () => {
       <Table striped bordered hover responsive className="modern-table">
         <thead>
           <tr>
-            <th>ID</th>
+           
             <th>Patient</th>
             <th>CIN Patient</th>
             <th>Médecin</th>
@@ -420,19 +420,17 @@ const DiagnosticsInfermier = () => {
             const diagnosticId = getDiagnosticId(diagnostic);
             return (
               <tr key={getUniqueKey(diagnostic, index)}>
-                <td>#{diagnosticId || 'N/A'}</td>
+                
                 <td>
                   <strong>{getPatientName(diagnostic)}</strong>
-                  <br />
-                  <small className="text-muted">ID: {diagnostic.id_patient || 'N/A'}</small>
+                  
                 </td>
                 <td>
                   {getPatientCIN(diagnostic)}
                 </td>
                 <td>
                   <strong>{getMedecinName(diagnostic)}</strong>
-                  <br />
-                  <small className="text-muted">ID: {diagnostic.id_medecin || 'N/A'}</small>
+                 
                 </td>
                 <td>
                   {getMedecinCIN(diagnostic)}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Table,
@@ -11,7 +11,7 @@ import {
   Row,
   Col
 } from 'react-bootstrap';
-import { diagnosticsAPI, userAPI } from '../../Services/api';
+import { diagnosticsAPI, patientsAPI, userAPI } from '../../Services/api'; // Ajout de patientsAPI
 import { useAuth } from '../../hooks/useAuth';
 
 const DiagnosticsMedecin = () => {
@@ -22,15 +22,13 @@ const DiagnosticsMedecin = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedDiagnostic, setSelectedDiagnostic] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [medecinsCache, setMedecinsCache] = useState({});
-  const [patientsCache, setPatientsCache] = useState({});
-  const [loadingMedecins, setLoadingMedecins] = useState({});
-  const [loadingPatients, setLoadingPatients] = useState({});
   const [currentMedecinId, setCurrentMedecinId] = useState(null);
+  const [patientData, setPatientData] = useState({});
+  const [allPatients, setAllPatients] = useState([]);
 
   useEffect(() => {
     if (user && user.CIN) {
-      loadCurrentMedecin();
+      loadAllData();
     }
   }, [user]);
 
@@ -40,23 +38,167 @@ const DiagnosticsMedecin = () => {
     }
   }, [currentMedecinId]);
 
-  const loadCurrentMedecin = async () => {
-    if (!user || !user.CIN) return;
-
+  // Charger toutes les données nécessaires
+  const loadAllData = async () => {
     try {
-      const response = await userAPI.getAllMedecins();
-      const medecin = response.data.find(m => m.CIN === user.CIN);
-      if (medecin) {
-        setCurrentMedecinId(medecin.id_medecin);
-      } else {
-        setError('Médecin non trouvé dans la base de données');
-      }
+      setLoading(true);
+      setError('');
+
+      // 1. Charger le médecin actuel
+      await loadCurrentMedecin();
+
+      // 2. Charger tous les patients (pour avoir les noms)
+      await loadAllPatients();
+
     } catch (err) {
-      console.error('Erreur lors du chargement du médecin:', err);
-      setError('Erreur lors du chargement des informations du médecin');
+      console.error('Erreur lors du chargement des données:', err);
+      setError('Erreur lors du chargement des données initiales');
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Charger le médecin actuel
+  const loadCurrentMedecin = async () => {
+    if (!user || !user.CIN) {
+      setError('Utilisateur non connecté');
+      return;
+    }
+
+    try {
+      console.log('Chargement du médecin pour CIN:', user.CIN);
+      
+      // Option 1: Si l'utilisateur a déjà l'ID du médecin
+      if (user.id_medecin) {
+        setCurrentMedecinId(user.id_medecin);
+        return;
+      }
+
+      // Option 2: Chercher parmi tous les médecins
+      const response = await userAPI.getAllMedecins();
+      console.log('Liste des médecins:', response.data);
+      
+      if (response.data && Array.isArray(response.data)) {
+        // Chercher le médecin par CIN
+        const medecin = response.data.find(m => m.CIN === user.CIN);
+        
+        if (medecin) {
+          console.log('Médecin trouvé:', medecin);
+          setCurrentMedecinId(medecin.id_medecin);
+          
+          // Mettre à jour l'ID dans l'objet user si nécessaire
+          if (!user.id_medecin && medecin.id_medecin) {
+            user.id_medecin = medecin.id_medecin;
+          }
+        } else {
+          // Si pas trouvé, peut-être que user.CIN est un user ID
+          const medecinById = response.data.find(m => m.id == user.CIN);
+          if (medecinById) {
+            console.log('Médecin trouvé par ID:', medecinById);
+            setCurrentMedecinId(medecinById.id_medecin);
+          } else {
+            setError('Vous n\'êtes pas enregistré comme médecin');
+          }
+        }
+      } else {
+        setError('Format de données des médecins incorrect');
+      }
+    } catch (err) {
+      console.error('Erreur API médecins:', err);
+      setError('Erreur lors du chargement des informations médecin');
+    }
+  };
+
+  // Charger tous les patients
+  const loadAllPatients = async () => {
+    try {
+      console.log('Chargement des patients...');
+      const response = await patientsAPI.getAllPatients(); // Utilisation de patientsAPI
+      console.log('Réponse patients:', response);
+      
+      let patientsList = [];
+      
+      // Gérer différentes structures de réponse
+      if (response.data && Array.isArray(response.data)) {
+        patientsList = response.data;
+      } else if (Array.isArray(response)) {
+        patientsList = response;
+      } else if (response.data && typeof response.data === 'object') {
+        // Si c'est un objet avec une propriété data
+        patientsList = [response.data];
+      } else {
+        console.warn('Format de réponse patient inattendu:', response);
+        patientsList = [];
+      }
+      
+      console.log('Liste patients traitée:', patientsList);
+      setAllPatients(patientsList);
+      
+      // Créer un map de données patient
+      const patientMap = {};
+      patientsList.forEach(patient => {
+        if (!patient) return;
+        
+        // Extraire les informations patient
+        let patientInfo = {};
+        const patientId = patient.id_patient || patient.id;
+        
+        if (!patientId) {
+          console.warn('Patient sans ID:', patient);
+          return;
+        }
+        
+        if (patient.user) {
+          // Structure avec relation user
+          patientInfo = {
+            id_patient: patientId,
+            CIN: patient.CIN || patient.user.CIN,
+            nom: patient.user.nom,
+            prenom: patient.user.prenom,
+            email: patient.user.email,
+            num_tel: patient.user.num_tel,
+            adresse: patient.user.adresse
+          };
+        } else if (patient.nom) {
+          // Structure plate
+          patientInfo = {
+            id_patient: patientId,
+            CIN: patient.CIN,
+            nom: patient.nom,
+            prenom: patient.prenom,
+            email: patient.email,
+            num_tel: patient.num_tel,
+            adresse: patient.adresse
+          };
+        } else {
+          // Structure minimale
+          patientInfo = {
+            id_patient: patientId,
+            CIN: patient.CIN || 'N/A',
+            nom: 'Patient',
+            prenom: `#${patientId}`,
+            email: 'N/A',
+            num_tel: 'N/A',
+            adresse: 'N/A'
+          };
+        }
+        
+        patientMap[patientId] = patientInfo;
+      });
+      
+      console.log('Patient map créé:', patientMap);
+      setPatientData(patientMap);
+      
+    } catch (err) {
+      console.error('Erreur lors du chargement des patients:', err);
+      console.error('Détails erreur:', err.response || err.message);
+      // Ne pas bloquer le chargement principal si les patients échouent
+      setAllPatients([]);
+      setPatientData({});
+    }
+  };
+
+  // Charger les diagnostics
   const loadDiagnostics = async () => {
     if (!currentMedecinId) {
       setError('Médecin non identifié');
@@ -67,97 +209,124 @@ const DiagnosticsMedecin = () => {
     try {
       setLoading(true);
       setError('');
+      
+      console.log('Chargement des diagnostics pour médecin ID:', currentMedecinId);
+      
       const response = await diagnosticsAPI.getDiagnostics();
+      console.log('Réponse complète diagnostics:', response);
+      
+      let diagnosticsList = [];
+      
+      // Vérifier la structure de la réponse
+      if (response.data && Array.isArray(response.data)) {
+        diagnosticsList = response.data;
+      } else if (Array.isArray(response)) {
+        diagnosticsList = response;
+      } else if (response.data && typeof response.data === 'object') {
+        // Si c'est un objet avec une propriété data qui est un tableau
+        diagnosticsList = Array.isArray(response.data.data) ? response.data.data : [response.data];
+      } else {
+        console.error('Format de réponse inattendu:', response);
+        throw new Error('Format de données incorrect');
+      }
+      
+      console.log('Liste diagnostics:', diagnosticsList);
       
       // Filtrer pour ne montrer que les diagnostics du médecin connecté
-      const medecinDiagnostics = response.data.filter(
+      const medecinDiagnostics = diagnosticsList.filter(
         diagnostic => diagnostic.id_medecin == currentMedecinId
       );
       
-      console.log('Diagnostics du médecin chargés:', medecinDiagnostics);
+      console.log('Diagnostics filtrés pour médecin:', medecinDiagnostics);
       setDiagnostics(medecinDiagnostics);
+      
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Erreur lors du chargement des diagnostics';
+      console.error('Erreur détaillée lors du chargement des diagnostics:', err);
+      
+      let errorMessage = 'Erreur lors du chargement des diagnostics';
+      
+      if (err.response) {
+        console.log('Status:', err.response.status);
+        console.log('Data:', err.response.data);
+        
+        if (err.response.status === 401) {
+          errorMessage = 'Session expirée. Veuillez vous reconnecter.';
+        } else if (err.response.status === 404) {
+          errorMessage = 'Service non trouvé. Vérifiez la configuration.';
+        } else if (err.response.data?.message) {
+          errorMessage = err.response.data.message;
+        }
+      } else if (err.request) {
+        errorMessage = 'Pas de réponse du serveur. Vérifiez votre connexion.';
+      } else {
+        errorMessage = err.message || 'Erreur inattendue';
+      }
+      
       setError(errorMessage);
-      console.error('Erreur:', err);
+      setDiagnostics([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Charger un médecin individuellement avec gestion du cache
-  const loadMedecin = useCallback(async (medecinId) => {
-    if (!medecinId || medecinsCache[medecinId] || loadingMedecins[medecinId]) {
-      return;
-    }
-
-    try {
-      setLoadingMedecins(prev => ({ ...prev, [medecinId]: true }));
-      const response = await userAPI.getMedecinById(medecinId);
-      setMedecinsCache(prev => ({
-        ...prev,
-        [medecinId]: response.data
-      }));
-    } catch (err) {
-      console.error(`Erreur lors du chargement du médecin ${medecinId}:`, err);
-      setMedecinsCache(prev => ({
-        ...prev,
-        [medecinId]: { error: true, id: medecinId }
-      }));
-    } finally {
-      setLoadingMedecins(prev => ({ ...prev, [medecinId]: false }));
-    }
-  }, [medecinsCache, loadingMedecins]);
-
-  // Charger un patient individuellement avec gestion du cache
-  const loadPatient = useCallback(async (patientId) => {
-    if (!patientId || patientsCache[patientId] || loadingPatients[patientId]) {
-      return;
-    }
-
-    try {
-      setLoadingPatients(prev => ({ ...prev, [patientId]: true }));
-      const response = await userAPI.getPatientById(patientId);
-      setPatientsCache(prev => ({
-        ...prev,
-        [patientId]: response.data
-      }));
-    } catch (err) {
-      console.error(`Erreur lors du chargement du patient ${patientId}:`, err);
-      setPatientsCache(prev => ({
-        ...prev,
-        [patientId]: { error: true, id: patientId }
-      }));
-    } finally {
-      setLoadingPatients(prev => ({ ...prev, [patientId]: false }));
-    }
-  }, [patientsCache, loadingPatients]);
-
-  // Charger les données manquantes pour un diagnostic spécifique
-  const loadMissingDataForDiagnostic = useCallback((diagnostic) => {
-    if (diagnostic.id_medecin && !medecinsCache[diagnostic.id_medecin] && !loadingMedecins[diagnostic.id_medecin]) {
-      loadMedecin(diagnostic.id_medecin);
+  // Obtenir les informations d'un patient
+  const getPatientInfo = (patientId) => {
+    if (!patientId) {
+      return {
+        nomComplet: 'Non spécifié',
+        CIN: 'N/A',
+        display: 'Patient non spécifié'
+      };
     }
     
-    if (diagnostic.id_patient && !patientsCache[diagnostic.id_patient] && !loadingPatients[diagnostic.id_patient]) {
-      loadPatient(diagnostic.id_patient);
+    // Chercher dans le cache
+    if (patientData[patientId]) {
+      const p = patientData[patientId];
+      return {
+        nomComplet: `${p.prenom || ''} ${p.nom || ''}`.trim() || 'Nom inconnu',
+        CIN: p.CIN || 'N/A',
+        display: `${p.prenom || ''} ${p.nom || ''}`.trim() || `Patient #${patientId}`
+      };
     }
-  }, [medecinsCache, patientsCache, loadingMedecins, loadingPatients, loadMedecin, loadPatient]);
-
-  // Charger les données pour tous les diagnostics visibles
-  useEffect(() => {
-    diagnostics.forEach(diagnostic => {
-      loadMissingDataForDiagnostic(diagnostic);
+    
+    // Chercher dans la liste des patients
+    const patient = allPatients.find(p => {
+      const id = p.id_patient || p.id;
+      return id == patientId || (p.user && p.user.id == patientId);
     });
-  }, [diagnostics, loadMissingDataForDiagnostic]);
-
-  // Fonction pour obtenir l'ID du diagnostic de manière fiable
-  const getDiagnosticId = (diagnostic) => {
-    return diagnostic.idD || diagnostic.id || diagnostic.id_diagnostic;
+    
+    if (patient) {
+      let nomComplet = '';
+      let CIN = '';
+      
+      if (patient.user) {
+        nomComplet = `${patient.user.prenom || ''} ${patient.user.nom || ''}`.trim();
+        CIN = patient.user.CIN || patient.CIN || 'N/A';
+      } else if (patient.nom) {
+        nomComplet = `${patient.prenom || ''} ${patient.nom || ''}`.trim();
+        CIN = patient.CIN || 'N/A';
+      } else {
+        nomComplet = `Patient #${patientId}`;
+        CIN = patient.CIN || 'N/A';
+      }
+      
+      return {
+        nomComplet: nomComplet || `Patient #${patientId}`,
+        CIN: CIN,
+        display: nomComplet || `Patient #${patientId}`
+      };
+    }
+    
+    // Patient non trouvé - essayer d'obtenir les infos via API si possible
+    return {
+      nomComplet: `Patient #${patientId}`,
+      CIN: 'Non trouvé',
+      display: `Patient #${patientId}`
+    };
   };
 
+  // Gérer l'affichage du modal de détails
   const handleShowDetailModal = (diagnostic) => {
-    loadMissingDataForDiagnostic(diagnostic);
     setSelectedDiagnostic(diagnostic);
     setShowDetailModal(true);
     setError('');
@@ -169,6 +338,7 @@ const DiagnosticsMedecin = () => {
     setError('');
   };
 
+  // Approuver un diagnostic
   const handleApproveDiagnostic = async (diagnostic) => {
     const diagnosticId = getDiagnosticId(diagnostic);
 
@@ -180,35 +350,35 @@ const DiagnosticsMedecin = () => {
     if (window.confirm('Êtes-vous sûr de vouloir approuver ce diagnostic ?')) {
       try {
         setSubmitting(true);
+        setError('');
 
-        // Préparer les données pour la mise à jour
         const updateData = {
           ...diagnostic,
           etat: 'approuver'
         };
 
-        // Utiliser l'endpoint updateDiagnostic avec l'ID
+        console.log('Envoi de l\'approbation pour diagnostic:', diagnosticId);
         await diagnosticsAPI.updateDiagnostic(diagnosticId, updateData);
 
-        // Mettre à jour l'état local immédiatement pour une meilleure UX
+        // Mettre à jour localement
         setDiagnostics(prev => prev.map(d =>
           getDiagnosticId(d) === diagnosticId ? { ...d, etat: 'approuver' } : d
         ));
 
         alert('Diagnostic approuvé avec succès!');
-        await loadDiagnostics();
         handleCloseDetailModal();
 
       } catch (err) {
+        console.error('Erreur lors de l\'approbation:', err);
         const errorMessage = err.response?.data?.message || 'Erreur lors de l\'approbation du diagnostic';
         setError(errorMessage);
-        console.error('Erreur:', err);
       } finally {
         setSubmitting(false);
       }
     }
   };
 
+  // Refuser un diagnostic
   const handleRejectDiagnostic = async (diagnostic) => {
     const diagnosticId = getDiagnosticId(diagnostic);
 
@@ -220,368 +390,338 @@ const DiagnosticsMedecin = () => {
     if (window.confirm('Êtes-vous sûr de vouloir refuser ce diagnostic ?')) {
       try {
         setSubmitting(true);
+        setError('');
 
-        // Préparer les données pour la mise à jour (remettre en attente)
         const updateData = {
           ...diagnostic,
-          etat: 'enAttente'
+          etat: 'refusé'
         };
 
-        // Utiliser l'endpoint updateDiagnostic avec l'ID
         await diagnosticsAPI.updateDiagnostic(diagnosticId, updateData);
 
-        // Mettre à jour l'état local immédiatement pour une meilleure UX
+        // Mettre à jour localement
         setDiagnostics(prev => prev.map(d =>
-          getDiagnosticId(d) === diagnosticId ? { ...d, etat: 'enAttente' } : d
+          getDiagnosticId(d) === diagnosticId ? { ...d, etat: 'refusé' } : d
         ));
 
         alert('Diagnostic refusé avec succès!');
-        await loadDiagnostics();
         handleCloseDetailModal();
 
       } catch (err) {
+        console.error('Erreur lors du refus:', err);
         const errorMessage = err.response?.data?.message || 'Erreur lors du refus du diagnostic';
         setError(errorMessage);
-        console.error('Erreur:', err);
       } finally {
         setSubmitting(false);
       }
     }
   };
 
-  // Fonction utilitaire pour formater la date
+  // Obtenir l'ID d'un diagnostic
+  const getDiagnosticId = (diagnostic) => {
+    return diagnostic.idD || diagnostic.id || diagnostic.id_diagnostic;
+  };
+
+  // Formater une date
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
-      return new Date(dateString).toLocaleDateString('fr-FR');
+      const date = new Date(dateString);
+      return date.toLocaleDateString('fr-FR');
     } catch {
       return 'Date invalide';
     }
   };
 
-  // Fonction pour obtenir le nom complet d'un utilisateur
-  const getFullName = (user) => {
-    if (!user) return '';
-    return `${user.prenom || ''} ${user.nom || ''}`.trim();
-  };
-
-  // Fonction pour obtenir le nom du patient (avec bouton de rechargement si erreur)
-  const getPatientName = (diagnostic) => {
-    const patientId = diagnostic.id_patient;
-    if (!patientId) return 'N/A';
-
-    const patient = patientsCache[patientId];
-
-    if (loadingPatients[patientId]) {
-      return <Spinner animation="border" size="sm" />;
-    }
-
-    if (patient && patient.error) {
-      return (
-        <div className="d-flex align-items-center">
-          <span className="text-danger me-2">Patient #{patientId}</span>
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            onClick={() => loadPatient(patientId)}
-            title="Recharger"
-          >
-            <i className="fas fa-redo"></i>
-          </Button>
-        </div>
-      );
-    }
-
-    if (patient && patient.user) {
-      return getFullName(patient.user);
-    }
-
-    if (patient && patient.prenom) {
-      return `${patient.prenom} ${patient.nom || ''}`.trim();
-    }
-
-    // Si pas encore chargé, déclencher le chargement
-    if (!patient && !loadingPatients[patientId]) {
-      setTimeout(() => loadPatient(patientId), 0);
-    }
-
-    return `Patient #${patientId}`;
-  };
-
-  // Fonction pour obtenir le CIN du patient
-  const getPatientCIN = (diagnostic) => {
-    const patientId = diagnostic.id_patient;
-    if (!patientId) return 'N/A';
-    const patient = patientsCache[patientId];
-    if (patient && !patient.error && patient.CIN) {
-      return patient.CIN;
-    }
-    if (patient && !patient.error && patient.cin) {
-      return patient.cin;
-    }
-    return 'N/A';
-  };
-
-  // Fonction pour générer une clé unique
-  const getUniqueKey = (diagnostic, index) => {
-    const diagnosticId = getDiagnosticId(diagnostic);
-    return diagnosticId || `diagnostic-${index}-${Date.now()}`;
-  };
-
-  // Fonction pour obtenir le badge d'état
+  // Obtenir le badge d'état
   const getEtatBadge = (etat) => {
-    switch (etat) {
-      case 'approuver':
-      case 'approuvé':
-      case 'approved':
-        return <Badge bg="success">Approuvé</Badge>;
-      case 'enAttente':
-      case 'pending':
-        return <Badge bg="warning">En attente</Badge>;
-      default:
-        return <Badge bg="light" text="dark">{etat || 'N/A'}</Badge>;
+    if (!etat) return <Badge bg="secondary">Inconnu</Badge>;
+    
+    const etatLower = etat.toLowerCase();
+    
+    if (etatLower.includes('approu')) {
+      return <Badge bg="success">Approuvé</Badge>;
+    } else if (etatLower.includes('attente') || etatLower.includes('pending')) {
+      return <Badge bg="warning">En attente</Badge>;
+    } else if (etatLower.includes('refus')) {
+      return <Badge bg="danger">Refusé</Badge>;
+    } else {
+      return <Badge bg="light" text="dark">{etat}</Badge>;
     }
   };
 
-  // Fonction pour vérifier si le diagnostic peut être approuvé/refusé
+  // Vérifier si on peut approuver/refuser
   const canApproveReject = (diagnostic) => {
-    const pendingStates = ['enAttente', 'pending', 'en_attente'];
-    return pendingStates.includes(diagnostic.etat);
+    if (!diagnostic || !diagnostic.etat) return false;
+    const etat = diagnostic.etat.toLowerCase();
+    return etat.includes('attente') || etat.includes('pending');
   };
 
-  if (loading) {
+  // Recharger les données
+  const handleReload = () => {
+    setError('');
+    if (currentMedecinId) {
+      loadDiagnostics();
+    } else {
+      loadAllData();
+    }
+  };
+
+  // Afficher le chargement
+  if (loading && diagnostics.length === 0) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Chargement...</span>
-        </Spinner>
+        <div className="text-center">
+          <Spinner animation="border" role="status" variant="primary" />
+          <p className="mt-3">Chargement des données...</p>
+        </div>
       </Container>
     );
   }
 
   return (
-    <Container>
+    <Container className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>Mes Diagnostics</h1>
         <div>
-          <small className="text-muted">
-            Médecin ID: {currentMedecinId}
-          </small>
+          <h1 className="h2 mb-1">Mes Diagnostics</h1>
+          <p className="text-muted mb-0">Gestion de vos diagnostics médicaux</p>
         </div>
+        <Button 
+          variant="outline-primary" 
+          onClick={handleReload}
+          disabled={loading || submitting}
+        >
+          <i className="fas fa-sync-alt me-2"></i>
+          Actualiser
+        </Button>
       </div>
 
       {error && (
-        <Alert variant="danger" onClose={() => setError('')} dismissible>
-          {error}
+        <Alert variant="danger" className="mb-4">
+          <div className="d-flex align-items-center">
+            <i className="fas fa-exclamation-circle me-2"></i>
+            <div>
+              <strong>Erreur:</strong> {error}
+            </div>
+          </div>
+          <div className="mt-2">
+            <Button variant="outline-danger" size="sm" onClick={handleReload}>
+              Réessayer
+            </Button>
+          </div>
         </Alert>
       )}
 
-      <div className="row mb-4">
-        <div className="col-md-3">
-          <Card className="stats-card modern-card">
-            <Card.Body>
-              <div className="stats-icon">
-                <i className="fas fa-stethoscope"></i>
-              </div>
-              <div className="stats-number">{diagnostics.length}</div>
-              <div className="stats-label">Mes Diagnostics</div>
-            </Card.Body>
-          </Card>
-        </div>
-        <div className="col-md-3">
-          <Card className="stats-card modern-card">
-            <Card.Body>
-              <div className="stats-icon text-warning">
-                <i className="fas fa-clock"></i>
-              </div>
-              <div className="stats-number">
-                {diagnostics.filter(d => 
-                  ['enAttente', 'pending', 'en_attente'].includes(d.etat)
-                ).length}
-              </div>
-              <div className="stats-label">En Attente</div>
-            </Card.Body>
-          </Card>
-        </div>
-        <div className="col-md-3">
-          <Card className="stats-card modern-card">
-            <Card.Body>
-              <div className="stats-icon text-success">
-                <i className="fas fa-check"></i>
-              </div>
-              <div className="stats-number">
-                {diagnostics.filter(d =>
-                  ['approuver', 'approuvé', 'approved'].includes(d.etat)
-                ).length}
-              </div>
-              <div className="stats-label">Approuvés</div>
-            </Card.Body>
-          </Card>
-        </div>
-        <div className="col-md-3">
-          <Card className="stats-card modern-card">
-            <Card.Body>
-              <div className="stats-icon text-danger">
-                <i className="fas fa-times"></i>
-              </div>
-              <div className="stats-number">
-                {diagnostics.filter(d => 
-                  ['refusé', 'rejected'].includes(d.etat)
-                ).length}
-              </div>
-              <div className="stats-label">Refusés</div>
-            </Card.Body>
-          </Card>
-        </div>
-      </div>
-
-      <Table striped bordered hover responsive className="modern-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Patient</th>
-            <th>CIN Patient</th>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Résultats</th>
-            <th>État</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {diagnostics.map((diagnostic, index) => {
-            const diagnosticId = getDiagnosticId(diagnostic);
-            return (
-              <tr key={getUniqueKey(diagnostic, index)}>
-                <td>#{diagnosticId || 'N/A'}</td>
-                <td>
-                  <strong>{getPatientName(diagnostic)}</strong>
-                  <br />
-                  <small className="text-muted">ID: {diagnostic.id_patient || 'N/A'}</small>
-                </td>
-                <td>
-                  {getPatientCIN(diagnostic)}
-                </td>
-                <td>{formatDate(diagnostic.dateD)}</td>
-                <td>
-                  <div className="text-truncate" style={{ maxWidth: '150px' }} title={diagnostic.description}>
-                    {diagnostic.description || 'Non spécifié'}
-                  </div>
-                </td>
-                <td>
-                  <div className="text-truncate" style={{ maxWidth: '150px' }} title={diagnostic.resultats}>
-                    {diagnostic.resultats || 'Non spécifié'}
-                  </div>
-                </td>
-                <td>
-                  {getEtatBadge(diagnostic.etat)}
-                </td>
-                <td>
-                  <div className="btn-group" role="group">
-                    <Button 
-                      variant="outline-info" 
-                      size="sm"
-                      onClick={() => handleShowDetailModal(diagnostic)}
-                      title="Voir les détails"
-                    >
-                      <i className="fas fa-eye"></i>
-                    </Button>
-                    
-                    {canApproveReject(diagnostic) && (
-                      <>
-                        <Button 
-                          variant="outline-success" 
-                          size="sm"
-                          onClick={() => handleApproveDiagnostic(diagnostic)}
-                          title="Approuver le diagnostic"
-                          disabled={submitting}
-                        >
-                          <i className="fas fa-check"></i>
-                        </Button>
-                        <Button 
-                          variant="outline-danger" 
-                          size="sm"
-                          onClick={() => handleRejectDiagnostic(diagnostic)}
-                          title="Refuser le diagnostic"
-                          disabled={submitting}
-                        >
-                          <i className="fas fa-times"></i>
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </Table>
-
-      {diagnostics.length === 0 && (
-        <div className="text-center py-5">
-          <i className="fas fa-stethoscope fa-3x text-muted mb-3"></i>
-          <h4 className="text-muted">Aucun diagnostic trouvé</h4>
-          <p className="text-muted">Vous n'avez aucun diagnostic assigné.</p>
-        </div>
+      {/* Statistiques */}
+      {diagnostics.length > 0 && (
+        <Row className="mb-4">
+          <Col md={3}>
+            <Card className="border-0 shadow-sm">
+              <Card.Body className="text-center">
+                <h3 className="mb-0">{diagnostics.length}</h3>
+                <small className="text-muted">Total</small>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={3}>
+            <Card className="border-0 shadow-sm">
+              <Card.Body className="text-center">
+                <h3 className="mb-0 text-warning">
+                  {diagnostics.filter(d => canApproveReject(d)).length}
+                </h3>
+                <small className="text-muted">En attente</small>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={3}>
+            <Card className="border-0 shadow-sm">
+              <Card.Body className="text-center">
+                <h3 className="mb-0 text-success">
+                  {diagnostics.filter(d => d.etat?.toLowerCase().includes('approu')).length}
+                </h3>
+                <small className="text-muted">Approuvés</small>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={3}>
+            <Card className="border-0 shadow-sm">
+              <Card.Body className="text-center">
+                <h3 className="mb-0 text-danger">
+                  {diagnostics.filter(d => d.etat?.toLowerCase().includes('refus')).length}
+                </h3>
+                <small className="text-muted">Refusés</small>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
       )}
 
-      {/* Modal pour voir les détails du diagnostic */}
+      {/* Tableau des diagnostics */}
+      <Card className="border-0 shadow-sm">
+        <Card.Header className="bg-white border-bottom">
+          <h5 className="mb-0">
+            <i className="fas fa-file-medical me-2"></i>
+            Liste des diagnostics
+          </h5>
+        </Card.Header>
+        <Card.Body>
+          {diagnostics.length === 0 ? (
+            <div className="text-center py-5">
+              <i className="fas fa-stethoscope fa-3x text-muted mb-3"></i>
+              <h5 className="text-muted">Aucun diagnostic trouvé</h5>
+              <p className="text-muted mb-4">
+                {error ? 'Erreur lors du chargement' : 'Vous n\'avez aucun diagnostic assigné.'}
+              </p>
+              <Button variant="primary" onClick={handleReload}>
+                <i className="fas fa-sync-alt me-2"></i>
+                {error ? 'Réessayer' : 'Actualiser'}
+              </Button>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <Table hover className="mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th>Patient</th>
+                    <th>CIN</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>État</th>
+                    <th className="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {diagnostics.map((diagnostic, index) => {
+                    const patientInfo = getPatientInfo(diagnostic.id_patient);
+                    
+                    return (
+                      <tr key={`diagnostic-${index}-${diagnostic.id_patient || index}`}>
+                        <td>
+                          <div className="fw-medium">{patientInfo.display}</div>
+                        </td>
+                        <td>
+                          <Badge bg="info" className="fw-normal">
+                            {patientInfo.CIN}
+                          </Badge>
+                        </td>
+                        <td>{formatDate(diagnostic.dateD)}</td>
+                        <td>
+                          <div 
+                            className="text-truncate" 
+                            style={{ maxWidth: '200px' }}
+                            title={diagnostic.description}
+                          >
+                            {diagnostic.description || 'Non spécifié'}
+                          </div>
+                        </td>
+                        <td>
+                          {getEtatBadge(diagnostic.etat)}
+                        </td>
+                        <td className="text-end">
+                          <div className="d-flex justify-content-end gap-2">
+                            <Button 
+                              variant="outline-primary" 
+                              size="sm"
+                              onClick={() => handleShowDetailModal(diagnostic)}
+                              title="Voir détails"
+                            >
+                              <i className="fas fa-eye"></i>
+                            </Button>
+                            
+                            {canApproveReject(diagnostic) && (
+                              <>
+                                <Button 
+                                  variant="outline-success" 
+                                  size="sm"
+                                  onClick={() => handleApproveDiagnostic(diagnostic)}
+                                  title="Approuver"
+                                  disabled={submitting}
+                                >
+                                  <i className="fas fa-check"></i>
+                                </Button>
+                                <Button 
+                                  variant="outline-danger" 
+                                  size="sm"
+                                  onClick={() => handleRejectDiagnostic(diagnostic)}
+                                  title="Refuser"
+                                  disabled={submitting}
+                                >
+                                  <i className="fas fa-times"></i>
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </div>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* Modal de détails */}
       <Modal show={showDetailModal} onHide={handleCloseDetailModal} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Détails du Diagnostic</Modal.Title>
+          <Modal.Title>
+            <i className="fas fa-file-medical-alt me-2"></i>
+            Détails du diagnostic
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedDiagnostic && (
             <>
-              <Row className="mb-3">
+              <Row className="mb-4">
                 <Col md={6}>
-                  <strong>ID du Diagnostic:</strong>
-                  <br />
-                  #{getDiagnosticId(selectedDiagnostic)}
+                  <h6>Informations du diagnostic</h6>
+                  <div className="mb-2">
+                    <strong>ID:</strong> #{getDiagnosticId(selectedDiagnostic)}
+                  </div>
+                  <div className="mb-2">
+                    <strong>Date:</strong> {formatDate(selectedDiagnostic.dateD)}
+                  </div>
+                  <div>
+                    <strong>État:</strong> {getEtatBadge(selectedDiagnostic.etat)}
+                  </div>
                 </Col>
                 <Col md={6}>
-                  <strong>Date:</strong>
-                  <br />
-                  {formatDate(selectedDiagnostic.dateD)}
-                </Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col md={6}>
-                  <strong>Patient:</strong>
-                  <br />
-                  {getPatientName(selectedDiagnostic)}
-                  <br />
-                  <small className="text-muted">CIN: {getPatientCIN(selectedDiagnostic)}</small>
-                  <br />
-                  <small className="text-muted">ID: {selectedDiagnostic.id_patient}</small>
-                </Col>
-                <Col md={6}>
-                  <strong>État:</strong>
-                  <br />
-                  {getEtatBadge(selectedDiagnostic.etat)}
+                  <h6>Informations du patient</h6>
+                  {(() => {
+                    const patientInfo = getPatientInfo(selectedDiagnostic.id_patient);
+                    return (
+                      <>
+                        <div className="mb-2">
+                          <strong>Nom:</strong> {patientInfo.nomComplet}
+                        </div>
+                        <div className="mb-2">
+                          <strong>CIN:</strong> {patientInfo.CIN}
+                        </div>
+                        <div>
+                          <strong>ID Patient:</strong> {selectedDiagnostic.id_patient}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </Col>
               </Row>
 
               <hr />
 
-              <Row className="mb-3">
-                <Col>
-                  <strong>Description:</strong>
-                  <div className="p-3 bg-light rounded mt-2" style={{ minHeight: '100px' }}>
-                    {selectedDiagnostic.description || 'Non spécifié'}
-                  </div>
-                </Col>
-              </Row>
+              <div className="mb-4">
+                <h6>Description</h6>
+                <div className="p-3 bg-light rounded">
+                  {selectedDiagnostic.description || 'Non spécifié'}
+                </div>
+              </div>
 
-              <Row className="mb-3">
-                <Col>
-                  <strong>Résultats:</strong>
-                  <div className="p-3 bg-light rounded mt-2" style={{ minHeight: '100px' }}>
-                    {selectedDiagnostic.resultats || 'Non spécifié'}
-                  </div>
-                </Col>
-              </Row>
+              <div className="mb-4">
+                <h6>Résultats</h6>
+                <div className="p-3 bg-light rounded">
+                  {selectedDiagnostic.resultats || 'Non spécifié'}
+                </div>
+              </div>
             </>
           )}
         </Modal.Body>

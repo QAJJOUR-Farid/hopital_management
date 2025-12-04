@@ -25,7 +25,6 @@ const Sidebar = () => {
       case 'medecin':
         return [
           ...baseItems,
-          { path: '/rendezvous', icon: 'fas fa-calendar-check', label: 'Mes Rendez-vous' },
           { path: '/diagnosticsMedecin', icon: 'fas fa-stethoscope', label: 'Diagnostics' },
           { path: '/diagnostics&Patient', icon: 'fas fa-stethoscope', label: 'Patients' },
           { path: '/rendezvous-medecin', icon: 'fas fa-calendar-check', label: 'Mes Rendez-vous' }
@@ -42,7 +41,6 @@ const Sidebar = () => {
       case 'receptionniste':
         return [
           ...baseItems,
-          { path: '/rendezvous', icon: 'fas fa-calendar-check', label: 'Rendez-vous' },
           { path: '/diagnostics&Patient', icon: 'fas fa-stethoscope', label: 'Patients' },
           { path: '/rendezvous-rec', icon: 'fas fa-calendar-check', label: 'Rendez-vous' }
         ];
@@ -58,7 +56,6 @@ const Sidebar = () => {
       case 'patient':
         return [
           ...baseItems,
-          { path: '/rendezvous', icon: 'fas fa-calendar-check', label: 'Mes Rendez-vous' },
           { path: '/voirMedecins', icon: 'fas fa-prescription', label: 'Médecins' },
           { path: '/mesDiagnostics', icon: 'fas fa-prescription', label: 'Mes Diagnostics' },
           { path: '/rendezvous-patient', icon: 'fas fa-calendar-check', label: 'Mes Rendez-vous' },

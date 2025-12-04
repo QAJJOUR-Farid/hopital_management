@@ -141,7 +141,6 @@ const Diagnostics = () => {
       <Table striped bordered hover responsive className="modern-table">
         <thead>
           <tr>
-            <th>ID</th>
             <th>Nom Complet</th>
             <th>CIN</th>
             <th>Date de Naissance</th>
@@ -157,7 +156,6 @@ const Diagnostics = () => {
         <tbody>
           {patients.map((patient) => (
             <tr key={patient.id_patient}>
-              <td>#{patient.id_patient}</td>
               <td>
                 <strong>{getFullName(patient.user)}</strong>
               </td>
@@ -208,7 +206,6 @@ const Diagnostics = () => {
             <>
               <Row className="mb-3">
                 <Col md={6}>
-                  <strong>ID Patient:</strong> #{selectedPatient.id_patient}
                 </Col>
                 <Col md={6}>
                   <strong>CIN:</strong> {selectedPatient.user?.CIN || selectedPatient.CIN || selectedPatient.cin || 'N/A'}

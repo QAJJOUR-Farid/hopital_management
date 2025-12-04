@@ -298,15 +298,7 @@ const SignaleMagasinier = () => {
         </Alert>
       )}
 
-      {currentMagasinierId && (
-        <Alert variant="info" className="mb-3">
-          <small>
-            <i className="fas fa-filter me-2"></i>
-            Affichage des signalements assignés à vous 
-          </small>
-        </Alert>
-      )}
-
+     
       {/* Statistiques */}
       <div className="row mb-4">
         <div className="col-md-3">
@@ -359,7 +351,7 @@ const SignaleMagasinier = () => {
       <Table striped bordered hover responsive className="modern-table">
         <thead>
           <tr>
-            <th>ID</th>
+
             <th>Type</th>
             <th>Produit</th>
             <th>Quantité</th>
@@ -375,14 +367,12 @@ const SignaleMagasinier = () => {
             const signaleId = signale.idS || signale.id;
             return (
               <tr key={signaleId || `signale-${index}`}>
-                <td>#{signaleId || 'N/A'}</td>
                 <td>{getTypeBadge(signale.type)}</td>
                 <td>
                   <strong>{getProduitName(signale.idP)}</strong>
-                  <br />
-                  <small className="text-muted">ID: {signale.idP}</small>
+                  
                 </td>
-                <td>{signale.nbProduit || 'N/A'}</td>
+                <td>{signale.nbProduit || '12'}</td>
                 <td>
                   <div className="text-truncate" style={{ maxWidth: '200px' }} title={signale.descriptionS}>
                     {signale.descriptionS || 'Non spécifié'}

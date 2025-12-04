@@ -16,7 +16,10 @@ const RendezVousPatient = () => {
     medecin_cin: '', date_rv: '', heure_rv: '09:00:00', motif: ''
   });
   const [data, setData] = useState({
-    medecins: [], medecinsDetails: [], currentPatient: null, loadingData: true
+    medecins: [], 
+    medecinsDetails: [], 
+    currentPatient: null, 
+    loadingData: true
   });
 
   const setStateValue = (key, value) => setState(prev => ({ ...prev, [key]: value }));
@@ -48,40 +51,75 @@ const RendezVousPatient = () => {
            response.data?.data || response.data?.success?.data || [];
   };
 
-  // Charger le patient connecté (simulation - à adapter selon votre auth)
-  const loadCurrentPatient = useCallback(() => {
-    // En production, récupérer depuis le contexte d'authentification ou token
-    const patient = {
-      id_patient: 1, // À remplacer par l'ID réel du patient connecté
-      CIN: 'P12345', // À remplacer par le CIN réel
-      nom: 'patient 1',
-      prenom: ''
-    };
-    setDataValue('currentPatient', patient);
-    return patient;
+  // Charger le patient connecté - MODIFIER CETTE FONCTION SELON VOTRE AUTH
+  const loadCurrentPatient = useCallback(async () => {
+    try {
+      // ESSAYEZ D'ABORD DE RÉCUPÉRER LE PATIENT CONNECTÉ
+      // Si vous avez un système d'authentification, utilisez-le ici
+      
+      // Sinon, essayez de charger depuis l'API
+      const response = await userAPI.getAllUsers();
+      const usersData = extractData(response);
+      
+      // Chercher un utilisateur avec le rôle patient
+      const patientUser = usersData.find(user => user.role === 'patient');
+      
+      if (patientUser) {
+        const patient = {
+          id_patient: patientUser.id || 1, // Adaptez selon votre structure
+          CIN: patientUser.CIN || 'P12345',
+          nom: patientUser.nom || 'patient 1',
+          prenom: patientUser.prenom || ''
+        };
+        setDataValue('currentPatient', patient);
+        return patient;
+      } else {
+        // Fallback : patient par défaut
+        const patient = {
+          id_patient: 1,
+          CIN: 'P12345',
+          nom: 'patient 1',
+          prenom: ''
+        };
+        setDataValue('currentPatient', patient);
+        return patient;
+      }
+    } catch (err) {
+      console.error('Erreur chargement patient:', err);
+      // Fallback en cas d'erreur
+      const patient = {
+        id_patient: 1,
+        CIN: 'P12345',
+        nom: 'patient 1',
+        prenom: ''
+      };
+      setDataValue('currentPatient', patient);
+      return patient;
+    }
   }, []);
 
   // Chargement des données
-  const loadRendezVous = useCallback(async () => {
-    try {
-      setStateValue('loading', true);
-      const response = await rendezVousAPI.getRendezVous();
-      const rendezVousData = extractData(response);
-      
-      // Filtrer pour n'afficher que les rendez-vous du patient connecté
-      const patientRendezVous = rendezVousData.filter(rdv => 
-        rdv.id_patient === data.currentPatient?.id_patient
-      );
-      
-      setStateValue('rendezVous', patientRendezVous);
-      setStateValue('error', '');
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Erreur lors du chargement des rendez-vous';
-      setStateValue('error', `Erreur: ${errorMessage}`);
-    } finally {
-      setStateValue('loading', false);
-    }
-  }, [data.currentPatient]);
+ const loadRendezVous = useCallback(async (patient) => {
+  try {
+    setStateValue('loading', true);
+    const response = await rendezVousAPI.getRendezVous();
+    const rendezVousData = extractData(response);
+
+    // Filtrer pour n'afficher que les rendez-vous du patient connecté
+    const patientRendezVous = rendezVousData.filter(rdv => 
+      rdv.id_patient == patient?.id_patient
+    );
+
+    setStateValue('rendezVous', patientRendezVous);
+    setStateValue('error', '');
+  } catch (err) {
+    const errorMessage = err.response?.data?.message || 'Erreur lors du chargement des rendez-vous';
+    setStateValue('error', `Erreur: ${errorMessage}`);
+  } finally {
+    setStateValue('loading', false);
+  }
+}, []);
+
 
   const loadMedecinsData = async () => {
     try {
@@ -90,35 +128,46 @@ const RendezVousPatient = () => {
       
       const medecinsData = usersData.filter(user => user.role === 'medecin');
       setDataValue('medecins', medecinsData);
+      console.log('Médecins chargés:', medecinsData.length); // DEBUG
     } catch (err) {
-      setStateValue('error', 'Erreur lors du chargement des médecins'+err);
+      setStateValue('error', 'Erreur lors du chargement des médecins: ' + err.message);
+      console.error('Erreur loadMedecinsData:', err); // DEBUG
     }
   };
 
   const loadMedecinsDetails = async () => {
     try {
       const response = await userAPI.getAllMedecins();
-      setDataValue('medecinsDetails', extractData(response));
+      const details = extractData(response);
+      setDataValue('medecinsDetails', details);
+      console.log('Détails médecins chargés:', details.length); // DEBUG
     } catch (err) {
-      setStateValue('error', 'Erreur lors du chargement des détails médecins'+err);
+      setStateValue('error', 'Erreur lors du chargement des détails médecins: ' + err.message);
+      console.error('Erreur loadMedecinsDetails:', err); // DEBUG
     }
   };
 
-  const loadInitialData = async () => {
-    try {
-      setDataValue('loadingData', true);
-      const patient = loadCurrentPatient();
-      await Promise.all([
-        loadRendezVous(),
-        loadMedecinsData(),
-        loadMedecinsDetails()
-      ]);
-    } catch (err) {
-      setStateValue('error', 'Erreur lors du chargement des données'+err );
-    } finally {
-      setDataValue('loadingData', false);
-    }
-  };
+ const loadInitialData = async () => {
+  try {
+    setDataValue('loadingData', true);
+
+    // 1. Charger d'abord le patient
+    const patient = await loadCurrentPatient();
+
+    // 2. Charger les rendez-vous et les médecins en parallèle
+    await Promise.all([
+      loadRendezVous(patient),
+      loadMedecinsData(),
+      loadMedecinsDetails()
+    ]);
+
+  } catch (err) {
+    setStateValue('error', 'Erreur lors du chargement des données: ' + err.message);
+    console.error('Erreur loadInitialData:', err);
+  } finally {
+    setDataValue('loadingData', false);
+  }
+};
 
   // Filtres
   const applyFilters = useCallback(() => {
@@ -184,6 +233,7 @@ const RendezVousPatient = () => {
         id_rec: 1
       };
 
+      console.log('Création RDV:', rendezVousData); // DEBUG
       await rendezVousAPI.createRendezVous(rendezVousData);
       
       setStateValue('success', 'Rendez-vous créé avec succès!');
@@ -193,6 +243,7 @@ const RendezVousPatient = () => {
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Erreur lors de la création';
       setStateValue('error', `Erreur: ${errorMessage}`);
+      console.error('Erreur création RDV:', err); // DEBUG
     } finally {
       setStateValue('loading', false);
     }
@@ -214,33 +265,38 @@ const RendezVousPatient = () => {
   // Récupération des informations
   const getMedecinInfo = (medecinId) => {
     const medecinDetail = data.medecinsDetails.find(m => m.id_medecin === medecinId);
-    // const medecin = data.medecins.find(m => m.CIN === medecinDetail?.CIN);
-      // return medecin || {};
-        const medecinUser = data.medecins.find(m => m.CIN === medecinDetail?.CIN);
+    const medecinUser = data.medecins.find(m => m.CIN === medecinDetail?.CIN);
 
-      if (!medecinDetail && !medecinUser) return null;
+    if (!medecinDetail && !medecinUser) return null;
 
-  return {
-    ...medecinUser,     // nom, prenom, email, CIN...
-    ...medecinDetail    // id_medecin, specialite, telephone...
-  };
+    return {
+      ...medecinUser,
+      ...medecinDetail
+    };
   };
 
   // Effects
-  useEffect(() => { loadInitialData(); }, []);
-  useEffect(() => { applyFilters(); }, [applyFilters]);
+  useEffect(() => { 
+    console.log('Initial load...'); // DEBUG
+    loadInitialData(); 
+  }, []);
 
-  const { loading, error, success, filteredRendezVous } = state;
+  useEffect(() => { 
+    console.log('Application des filtres...'); // DEBUG
+    applyFilters(); 
+  }, [applyFilters]);
+
+  const { loading, error, success, filteredRendezVous, rendezVous } = state;
   const { medecins, currentPatient, loadingData } = data;
 
   const stats = {
-    total: state.rendezVous.length,
-    planned: state.rendezVous.filter(rdv => rdv.statut === 'prévu').length,
-    confirmed: state.rendezVous.filter(rdv => rdv.statut === 'confirmé').length,
-    completed: state.rendezVous.filter(rdv => rdv.statut === 'terminé').length
+    total: rendezVous.length,
+    planned: rendezVous.filter(rdv => rdv.statut === 'prévu').length,
+    confirmed: rendezVous.filter(rdv => rdv.statut === 'confirmé').length,
+    completed: rendezVous.filter(rdv => rdv.statut === 'terminé').length
   };
 
-  if ((loading && state.rendezVous.length === 0) || loadingData) {
+  if ((loading && rendezVous.length === 0) || loadingData) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
         <div className="text-center">
@@ -250,6 +306,9 @@ const RendezVousPatient = () => {
       </Container>
     );
   }
+
+  console.log('Render - Rendez-vous:', rendezVous.length); // DEBUG
+  console.log('Render - Filtérés:', filteredRendezVous.length); // DEBUG
 
   return (
     <Container>
@@ -348,7 +407,7 @@ const RendezVousPatient = () => {
             <tbody>
               {filteredRendezVous.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="text-center py-4">
+                  <td colSpan="6" className="text-center py-4">
                     <i className="fas fa-calendar-times fa-2x text-muted mb-2"></i>
                     <p className="text-muted">Aucun rendez-vous trouvé</p>
                     <Button variant="outline-primary" onClick={() => setShowModal(true)}>
@@ -359,18 +418,17 @@ const RendezVousPatient = () => {
               ) : (
                 filteredRendezVous.map((rdv) => {
                   const medecin = getMedecinInfo(rdv.id_medecin);
-                    const status = statusConfig[rdv.statut] || {};
-                    
-                    const med = getMedecinInfo(rdv.id_medecin);
+                  const status = statusConfig[rdv.statut] || {};
+                  
+                  const med = getMedecinInfo(rdv.id_medecin);
 
                   return (
                     <tr key={rdv.idR}>
                       <td>
-                        <strong>Dr. {medecin.nom} {medecin.prenom}</strong>
-                        {/* {medecin.CIN && <div><small className="text-muted">CIN: {medecin.CIN}</small></div>} */}
+                        <strong>Dr. {medecin?.nom || 'N/A'} {medecin?.prenom || ''}</strong>
                       </td>
                       <td>
-                        <td>{med?.specialite || "Non spécifié"}</td>
+                        {med?.specialite || "Non spécifié"}
                       </td>
                       <td className="text-nowrap">{formatDate(rdv.date_rv)}</td>
                       <td><Badge bg={status.badge}>{status.text}</Badge></td>
@@ -411,8 +469,8 @@ const RendezVousPatient = () => {
             {currentPatient && (
               <Alert variant="info" className="mb-3">
                 <i className="fas fa-user me-2"></i>
-                <strong>Patient:</strong> {currentPatient.nom} {currentPatient.prenom} 
-                {currentPatient.CIN && ` (CIN: ${currentPatient.CIN})`}
+                <strong>CIN:</strong>  
+                {currentPatient.CIN && ` ${currentPatient.CIN}`}
               </Alert>
             )}
             

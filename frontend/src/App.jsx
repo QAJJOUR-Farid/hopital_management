@@ -18,7 +18,6 @@ import RendezVousInfirmier from "./pages/MesRendezVous/RendezVousInfirmier";
 import RendezVousMedecin from "./pages/MesRendezVous/RendezVousMedecin";
 import RendezVousReceptionniste from "./pages/MesRendezVous/RendezVousReceptionniste";
 import RendezVousPatient from "./pages/MesRendezVous/RendezVousPatient";
-import RendezVous from "./pages/MesRendezVous/RendezVous";
 import Produits from "./pages/Produits";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
